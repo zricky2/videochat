@@ -1,0 +1,78 @@
+body {
+    text-align: center;
+    background-image: url("images/minimal.jpg");
+    
+}
+
+#consultingRoom {
+    display: flexbox;
+}
+
+.stream {
+    width: 65%;
+    max-height: 500px;
+    border: black;
+    border-width: 5px;
+    margin: auto;
+}
+
+.options {
+    position: relative;
+    background-color: lightslategray;
+    border: none;
+    font-size: 10px;
+    color: #FFFFFF;
+    height: 30px;
+    width: 60px;
+    text-align: center;
+    transition-duration: 0.4s;
+    text-decoration: none;
+    overflow: hidden;
+    cursor: pointer;
+  }
+  
+  .options:after {
+    content: "";
+    background: #f1f1f1;
+    display: block;
+    position: absolute;
+    padding-top: 300%;
+    padding-left: 350%;
+    margin-left: -20px !important;
+    margin-top: -120%;
+    opacity: 0;
+    transition: all 0.8s
+  }
+  
+  .options:active:after {
+    padding: 0;
+    margin: 0;
+    opacity: 1;
+    transition: 0s
+  }
+
+  .chatbox {
+      background-color: whitesmoke;
+      width: 400px;
+      height: 300px;
+      border-color: black;
+      border-radius: 3%;
+  }
+
+  .chatbox > .title {
+      border-top-left-radius: 3%;
+      border-top-right-radius: 3%;
+      width: 400px;
+      height: 75px;
+      background-color: black;
+  }
+
+  .chatbox > .messages {
+      overflow-y: auto;
+      border-bottom: gray;
+      border-width: 5px;
+      font-size: 10px;
+  }
+  .chatbox > .text {
+    font-size: 10px;
+  }
