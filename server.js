@@ -1,8 +1,19 @@
 const fs = require('fs');
+const path = require('path');
 const express = require('express');
 const app = express();
 
+var indexRouter = require('./routes/index')
+
 app.use(express.static('public'));
+//__dirname : It will resolve to your project folder.
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname + '/public/index.html'))
+})
+
+app.get('/room', (req, res) => {
+    res.sendFile(path.join(__dirname + '/public/room/room.html'));
+})
 
 var server = app.listen(process.env.PORT || 3000, listen);
 
@@ -59,6 +70,11 @@ io.on('connection', socket => {
     socket.on('answer', event => {
         console.log("answer");
         socket.to(event.room).emit('answer', event.sdp);
+    })
+
+    //send file's info
+    socket.on('file', event => {
+        socket.to(event.room).emit('file', event);
     })
 
     socket.on('disconnect', event => {
