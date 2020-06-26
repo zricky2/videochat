@@ -3,7 +3,7 @@ var divConsultingRoom = document.querySelector("#consultingRoom");
 var inputRoomNumber = document.querySelector("#roomNumber");
 var btnGoRoom = document.querySelector("#goRoom");
 var localVideo = document.querySelector("#localVideo");
-var remoteVideo = document.querySelector("#remoteVideo");
+var remoteVideo;
 var audioButton = document.querySelector('#audio');
 var videoButton = document.querySelector('#video');
 var shareButton = document.querySelector('#share');
@@ -19,8 +19,16 @@ var receiveProgress = document.querySelector('progress#receiveProgress');
 var fileList = document.getElementById("fileList");
 var copyText = document.getElementById("copytext");
 var liveText = document.getElementById("livetextarea");
-
-divConsultingRoom.style.display = "none";
+var users = document.getElementsByClassName('users')[0];
+var chatBox = document.getElementById("chatbox");
+var openChat = document.getElementById("openchat");
+var closeChat = document.getElementById("closechat");
+var openFiles = document.getElementById("openfiles");
+var closeFiles = document.getElementById("closefiles");
+var filesBox = document.getElementById("filesbox");
+var liveTextBox = document.getElementById("livetextbox");
+var openLiveText = document.getElementById("openlivetext");
+var closeLiveText = document.getElementById("closelivetext");
 
 var roomNumber;
 var localStream;
@@ -31,6 +39,7 @@ var isCaller;
 var audio;
 var video;
 var share;
+var create = true;
 
 var recFileSize;
 var recFileName;
@@ -38,31 +47,29 @@ var recFileName;
 var receiveBuffer = [];
 var receivedSize = 0;
 
-var iceServers = {
+const iceServers = {
     'iceServers': [
         { 'urls': 'stun:stun.l.google.com:19302' }
     ]
 }
-
+//https://hpbn.co/webrtc/
 var streamConstraints = {
     video: {
-        width: { min: 240, ideal: localVideo.width, max: 1280 },
-        height: { min: 120, ideal: localVideo.height, max: 1280 }
+    width: { min: 1024, ideal: 1280, max: 1920 },
+    height: { min: 576, ideal: 720, max: 1080 }
     },
-    /* audio: {
+     /* audio: {
         echoCancellation: true,
         noiseSupression: true
-    }, */
+    },  */
     facingMode: { exact: "user" }//environment
 };
 
 var displayMediaOptions = {
     video: {
-        width: 480,
-        height: 240,
         cursor: "always"
     },
-    audio: false
+    audio: true
 };
 
 //connect to socket
@@ -112,38 +119,66 @@ uploadButton.addEventListener('click', sendFile)
 
 copyText.addEventListener('click', event => {
     liveText.select();
-    //liveText.setSelectionRange(0, 99999)
     document.execCommand("copy");
 })
+//The oninput attribute fires when the value of an <input> or <textarea> element is changed.
+liveText.addEventListener("input", sendLiveText);
 
-liveText.addEventListener("input", sendLiveText);//The oninput attribute fires when the value of an <input> or <textarea> element is changed.
+openChat.addEventListener("click", (e) => {
+    openBox("chat");
+});
+
+closeChat.addEventListener("click", () => {
+    chatBox.style.display = "none";
+});
+
+openFiles.addEventListener("click", (e) => {
+    openBox("files");
+});
+
+closeFiles.addEventListener("click", () => {
+    filesBox.style.display = "none";
+});
+
+openLiveText.addEventListener("click", (e) => {
+    openBox("text");
+});
+
+closeLiveText.addEventListener("click", () => {
+    liveTextBox.style.display = "none";
+});
+
+function openBox(box) {
+    switch(box) {
+        case "chat":
+            chatBox.style.display = "block";
+            filesBox.style.display = "none";
+            liveTextBox.style.display = "none";
+            break;
+        case "files":
+            chatBox.style.display = "none";
+            filesBox.style.display = "block";
+            liveTextBox.style.display = "none";
+            break;
+        case "text":
+            chatBox.style.display = "none";
+            filesBox.style.display = "none";
+            liveTextBox.style.display = "block";
+            break;
+    }
+}
 
 /*When the first participant joins the call, the server creates a new room and then emits a ‘joined’ event to him. 
 Then the same process is repeated in the second participant side: the browser gets access to the media devices, stores the stream on a variable and shows the video on the screen, but another action is taking, a ‘ready’ message is sent to the server. 
 Add the code below to the bottom of client.js file. */
-if ('mediaDevices' in navigator && 'getUserMedia' in navigator.mediaDevices) {
-    console.log("Media devices are available")
-    //getDevices();
-}
-
-function getDevices() {
-    navigator.mediaDevices.enumerateDevices()
-        .then(result => {
-            result.forEach(value => console.log(value));
-        })
-        .catch(error => {
-            console.log(error);
-        })
+if (!('mediaDevices' in navigator && 'getUserMedia' in navigator.mediaDevices)) {
+   alert("No media devices to support getUserMedia.");
 }
 
 //when server emits created
 socket.on('created', () => {
     console.log('New room is created');
-    divSelectRoom.style.display = "none";
-    var displayRoom = document.createElement('p');
-    displayRoom.innerHTML = `Room number: ${inputRoomNumber.value}`;
-    divConsultingRoom.insertAdjacentElement("beforebegin", displayRoom);
-    divConsultingRoom.style.display = "block";
+    displayRoom();
     //set up video
     startVideo(true);
 })
@@ -151,29 +186,25 @@ socket.on('created', () => {
 //when server emits joined
 socket.on('joined', () => {
     console.log('join room');
-    divSelectRoom.style.display = "none";
-    var displayRoom = document.createElement('p');
-    displayRoom.innerHTML = `Room number: ${inputRoomNumber.value}`;
-    divConsultingRoom.insertAdjacentElement("beforebegin", displayRoom);
-    divConsultingRoom.style.display = "block";
+    displayRoom();
     //set up video
     startVideo(false);
 })
 
 socket.on('full', () => {
-    console.log("This room is full");
-    alert("This room is full. Type another room");
+    alert("This room is full. Type another room number!");
 })
+
+function displayRoom() {
+    divSelectRoom.style.display = "none";
+    var displayRoom = document.createElement('p');
+    displayRoom.innerHTML = `Room number: ${inputRoomNumber.value}`;
+    divConsultingRoom.insertAdjacentElement("beforebegin", displayRoom);
+    divConsultingRoom.style.display = "block";
+}
 
 //Before two peers can communitcate using WebRTC, they need to exchange connectivity information. Since the network conditions can vary dependning on a number of factors, 
 //an external service is usually used for discovering the possible candidates for connecting to a peer. This service is called ICE and is using either a STUN or a TURN server.
-
-/* The caller captures local Media via navigator.mediaDevices.getUserMedia() 
-The caller creates RTCPeerConnection and called RTCPeerConnection.addTrack() (Since addStream is deprecating)
-The caller calls RTCPeerConnection.createOffer() to create an offer.
-The caller calls RTCPeerConnection.setLocalDescription() to set that offer as the local description (that is, the description of the local end of the connection).
-After setLocalDescription(), the caller asks STUN servers to generate the ice candidates
-The caller uses the signaling server to transmit the offer to the intended receiver of the call. */
 
 socket.on('ready', () => {
     createRTC();
@@ -277,6 +308,18 @@ socket.on('file', e => {
     recFileName = e.name;
     recFileSize = e.size;
 })
+//when a user leaves
+socket.on('leave', e => {
+    removeRemote();
+})
+
+socket.on('startshare', e => {
+    remoteVideo.controls = true;
+})
+
+socket.on('stopshare', e => {
+    remoteVideo.controls = false;
+})
 
 //These are the reference functions for the event listener
 //sends a candidate message to server
@@ -292,40 +335,13 @@ function onIceCandidate(event) {
     }
 }
 
-function stateChange(event) {
-    //console.log(event);
-    console.log(`Iceconnection state: ${rtcPeerConnection.iceConnectionState}`);
-};
-
 function addMedia(event) {
-    console.log("adding remote stream: " + event.streams[0].id);
     remoteStream = event.streams[0];
     remoteVideo.srcObject = remoteStream;
 }
 
-//Each MediaStream object includes several MediaStreamTrack objects. They represent video and audio from different input devices.
-//Each MediaStreamTrack object may include several channels (right and left audio channels). These are the smallest parts defined by the MediaStream API.
-//There are two ways to output MediaStream objects. First, we can render output into a video or audio element. Secondly, we can send output to the RTCPeerConnection object, which then send it to a remote peer.
-function startVideo(created) {
-    navigator.mediaDevices.getUserMedia(streamConstraints)
-        .then(stream => {
-            console.log("Local stream: " + stream.id);
-            localStream = stream;
-            localVideo.srcObject = stream;
-            if (created) {
-                //sets current user as caller
-                [isCaller, audio, video] = [true, true, true];
-            } else {
-                [audio, video] = [true, true];
-                socket.emit('ready', roomNumber); //send message to server starts signaling
-            }
-        }).catch(error => {
-            console.log(error);
-        })
-}
-
 function createRTC() {
-    //creates an RTCPeerConnection
+    //creates a RTCPeerConnection
     rtcPeerConnection = new RTCPeerConnection(iceServers);
     console.log("new RTCPeerConnetion");
     if (isCaller) {
@@ -343,14 +359,16 @@ function createRTC() {
         dataChannel.addEventListener('open', event => {
             console.log("channel is ready");
             sendButton.disabled = false;
-            
         });
         dataChannel.addEventListener('close', event => {
             console.log("channel is closed");
             sendButton.disabled = true;
-            
         });
         dataChannel.addEventListener('message', receiveMessage);
+    }
+    if(create) {
+        createRemote(); //create remote video
+        create = false;
     }
 }
 
@@ -360,14 +378,51 @@ function receiveConnection(event) {
     dataChannel.addEventListener('open', event => {
         console.log("channel is ready");
         sendButton.disabled = false;
-        
     });
     dataChannel.addEventListener('close', event => {
         console.log("channel is closed");
         sendButton.disabled = true;
-        
     });
     dataChannel.addEventListener('message', receiveMessage);
+}
+
+function stateChange(event) {
+    console.log(`Iceconnection state: ${rtcPeerConnection.iceConnectionState}`);//looking for completed
+};
+
+function createRemote() {
+    let videoBox = document.createElement('div');
+    videoBox.classList.add('videobox');
+    videoBox.id = "remotevideobox"
+    let user = document.createElement("h3");
+    user.innerHTML = "Remote";
+    remoteVideo = document.createElement("video");
+    remoteVideo.classList.add("remote");
+    remoteVideo.autoplay = true;
+    remoteVideo.playsInline = true;
+    videoBox.appendChild(user);
+    videoBox.appendChild(remoteVideo);
+    users.insertAdjacentElement("afterbegin", videoBox);
+    localVideo.classList.add("local");
+    localVideo.classList.remove("stream");
+}
+
+//Each MediaStream object includes several MediaStreamTrack objects. They represent video and audio from different input devices.
+function startVideo(created) {
+    navigator.mediaDevices.getUserMedia(streamConstraints)
+        .then(stream => {
+            localStream = stream;
+            localVideo.srcObject = stream;
+            if (created) {
+                //sets current user as caller
+                [isCaller, audio, video] = [true, true, true];
+            } else {
+                [audio, video] = [true, true];
+                socket.emit('ready', roomNumber); //send message to server starts signaling
+            }
+        }).catch(error => {
+            console.log("Error in starting video: " + error);
+        })
 }
 
 /* This works by obtaining the video element's stream from its srcObject property. Then the stream's track list is obtained by calling its getTracks() method. From there, all that remains to do is to iterate over the track list using forEach() and calling each track's stop() method.
@@ -384,7 +439,6 @@ function stopVideo() {
 function audioOn() {
     const audioStream = localVideo.srcObject;
     const tracks = audioStream.getAudioTracks();
-
     tracks.forEach(t => {
         t.enabled = true;
     });
@@ -395,7 +449,6 @@ function audioOn() {
 function audioOff() {
     const audioStream = localVideo.srcObject;
     const tracks = audioStream.getAudioTracks();
-
     tracks.forEach(t => {
         t.enabled = false;
     });
@@ -406,7 +459,6 @@ function audioOff() {
 function videoOn() {
     const videoStream = localVideo.srcObject;
     const tracks = videoStream.getVideoTracks();
-
     tracks.forEach(t => {
         t.enabled = true;
     });
@@ -417,23 +469,26 @@ function videoOn() {
 function videoOff() {
     const videoStream = localVideo.srcObject;
     const tracks = videoStream.getVideoTracks();
-
     tracks.forEach(t => {
         t.enabled = false;
     });
     video = false;
     videoButton.innerHTML = "Start Video"
 }
-//fix leaveRoom
+//
 function leaveRoom() {
-    rtcPeerConnection.close();
-    remotePeerConnection.close();
-    localPeerConnection = null;
-    remotePeerConnection = null;
-    stopVideo();
-    divSelectRoom.style.display = "block";
-    divConsultingRoom.style.display = "none";
-    console.log('Ending call.');
+    window.location.reload();//reload the page
+    socket.emit('leave', roomNumber);
+}
+
+function removeRemote() {
+    let users = document.getElementsByClassName("users")[0];
+    let remotebox = document.getElementById('remotevideobox');
+    users.removeChild(remotebox);
+    remoteStream = null;
+    localVideo.classList.add("stream");
+    localVideo.classList.remove("local");
+    create = true;
 }
 
 function startShare() {
@@ -446,6 +501,8 @@ function startShare() {
             socket.emit('ready', roomNumber);
             share = true;
             shareButton.innerHTML = "Stop Sharing"
+            localVideo.controls = true;
+            socket.emit('startshare', roomNumber);
         })
         .catch(err => {
             console.error("Error:" + err);
@@ -460,6 +517,8 @@ function stopShare() {
     startVideo(false);
     audioButton.innerHTML = "Mute";
     videoButton.innerHTML = "Stop Video";
+    localVideo.controls = false;
+    socket.emit('stopshare', roomNumber);
 }
 
 //chatbox
@@ -472,8 +531,7 @@ function sendMessage() {
         }
         dataChannel.send(JSON.stringify(data));
         messageInputBox.value = "";
-        messageInputBox.focus();
-        createMessage(message);
+        createLocalMessage(message);
     }
 }
 
@@ -482,7 +540,7 @@ function receiveMessage(event) {
     if (typeof message === "string") {
         let data = JSON.parse(message);
         if (data.type === "chat") {
-            createMessage(data.data);
+            createRemoteMessage(data.data);
         } else {
             receiveLiveText(data.data);
         }
@@ -491,13 +549,23 @@ function receiveMessage(event) {
     }
 }
 
-function createMessage(message) {
-    var par = document.createElement("p");
-    var txtNode = document.createTextNode(message);
-    par.appendChild(txtNode);
-    par.classList.add("sentMessages");
-    messagesBox.appendChild(par);
+function createLocalMessage(message) {
+    let div = document.createElement("div");
+    div.innerHTML = message;
+    div.classList.add("allmessages");
+    div.classList.add("localmessages");
+    messagesBox.appendChild(div);
 }
+
+function createRemoteMessage(message) {
+    let div = document.createElement("div");
+    div.innerHTML = message;
+    div.classList.add("allmessages");
+    div.classList.add("remotemessages");
+    messagesBox.appendChild(div);
+}
+
+
 //object-fit: cover fullscreen
 
 function fileInfo() {
@@ -552,7 +620,6 @@ function sendFile(event) {
     }
     socket.emit('file', data);
     fileReader.addEventListener('error', error => console.error('Error reading file:', error));
-    //fileReader.addEventListener('abort', event => console.log('File reading aborted:', event));
     fileReader.addEventListener('load', e => {
       console.log('FileRead.onload ', e);
       dataChannel.send(e.target.result);
@@ -589,7 +656,6 @@ function sendFile(event) {
   }
   
   //livetext
-
   function sendLiveText(event) {
     let text = liveText.value;
     let data = {

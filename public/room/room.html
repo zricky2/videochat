@@ -10,60 +10,69 @@
 </head>
 
 <body>
-    <h1>Video Call</h1>
     <div id="selectRoom">
+        <h1>Liveo</h1>
         <label>Type the room number</label>
         <input id="roomNumber" type="text" />
         <button id="goRoom">Go</button>
         <p>Create a room or join a existing room</p>
     </div>
 
-    <div id="consultingRoom">
-        <video class="stream" id="localVideo" autoplay playsinline></video>
-        <video class="stream" id="remoteVideo" autoplay playsinline></video>
-        <div class="buttons">
-            <button class="options" id="audio">Mute</button>
-            <button class="options" id="video">Stop Video</button>
-            <button class="options" id="share">Share Screen</button>
-            <button class="options" id="leave">Leave</button>
+    <div id="consultingRoom" class="box">
+        <div class="users">
+            <div class="videobox">
+                <video class="stream" id="localVideo" autoplay playsinline></video>
+            </div>
         </div>
-        <div class="chatbox">
-            <div class="title">
-                <h1>Chatbox</h1>
+
+        <div class="box" id="chatbox">
+            <div class="title">Chatbox
+                <button id="closechat" class="close">&times</button>
             </div>
-            <div class="messages">
-            </div>
+            <div class="messages"></div>
             <div class="text">
-                <input type="text" name="message" id="message" placeholder="Message text" inputmode="latin" size=60
-                    maxlength=120>
-                <button id="sendButton" disabled>
-                    Send
-                </button>
+                <textarea id="message" placeholder="Type a message..." rows="4" cols="20" maxlength="120"></textarea>
+                <button id="sendButton" disabled>Send</button>
             </div>
         </div>
-        <div class="files">
+
+        <div id="livetextbox" class="box">
+            <div class="title">Live Text
+                <button id="copytext">Copy All</button>
+                <button id="closelivetext" class="close">&times</button>
+            </div>
+            <textarea id="livetextarea" placeholder="Other users will see your text instantly when you type in here!"
+                wrap="soft" rows="20" cols="50"></textarea>
+        </div>
+
+        <div class="files" id="filesbox">
+            <div class="title">Files<button id="closefiles" class="close">&times</button>
+            </div>
             <label for="myfile">Select files:</label>
             <input type="file" id="myFile" multiple size="50">
-            <button id="fileupload" disabled>
-                Send
-            </button>
-             <div class="progress">
+            <button id="fileupload" disabled>Send Files</button>
+            <div class="progress"><br>
                 <div class="label">Send progress: </div>
                 <progress id="sendProgress" max="0" value="0"></progress>
             </div>
             <div class="progress">
                 <div class="label">Receive progress: </div>
                 <progress id="receiveProgress" max="0" value="0"></progress>
-              </div>
-            <div id = fileList>
             </div>
+            <div id=fileList></div>
             <a id="download"></a>
         </div>
-        <div class="livetextbox">
-            <button id = "copytext">Copy All</button>
-            <textarea id="livetextarea" placeholder="Change the World" 
-            wrap = "hard" rows = "20" cols= "50"></textarea>
+
+        <div id="bottombar">
+            <button id="openchat" class="bottombutton">Chat</button>
+            <button id="openlivetext" class="bottombutton">Live Text</button>
+            <button id="openfiles" class="bottombutton">Files</button>
+            <button id="audio" class="bottombutton options">Mute</button>
+            <button id="video" class="bottombutton options">Stop Video</button>
+            <button id="share" class="bottombutton options">Share Screen</button>
+            <button id="leave" class="bottombutton">Leave</button>
         </div>
+
     </div>
     <script src="client.js"></script>
 </body>

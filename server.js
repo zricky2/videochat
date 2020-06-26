@@ -1,18 +1,19 @@
 const fs = require('fs');
-const path = require('path');
+//const path = require('path');
 const express = require('express');
 const app = express();
+const routes = require('./routes/index')
 
 var indexRouter = require('./routes/index')
 
 app.use(express.static('public'));
 //__dirname : It will resolve to your project folder.
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname + '/public/index.html'))
+    res.sendFile(__dirname + '/public/index.html')
 })
 
 app.get('/room', (req, res) => {
-    res.sendFile(path.join(__dirname + '/public/room/room.html'));
+    res.sendFile(__dirname + '/public/room/room.html');
 })
 
 var server = app.listen(process.env.PORT || 3000, listen);
@@ -77,14 +78,25 @@ io.on('connection', socket => {
         socket.to(event.room).emit('file', event);
     })
 
+    socket.on('leave', roomNumber => {
+        socket.to(roomNumber).emit('leave', roomNumber);
+    })
+
+    socket.on('startshare', roomNumber => {
+        socket.to(roomNumber).emit('startshare', roomNumber);
+    })
+
+    socket.on('stopshare', roomNumber => {
+        socket.to(roomNumber).emit('stopshare', roomNumber);
+    })
+
     socket.on('disconnect', event => {
         //socket.leave(room);
         console.log(socket.id + " has disconnected");
+        //socket.to(event.room).emit('leave', event);
     });
 
 })
 
-app.get(`/room`, function(req, res){
-    res.render('/views/room.html');
-});
+
 
