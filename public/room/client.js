@@ -49,20 +49,23 @@ var receivedSize = 0;
 
 const iceServers = {
     'iceServers': [
-        { 'urls': 'stun:stun.l.google.com:19302' }
+        //{ 'urls': 'stun:stun.l.google.com:19302' }
+       // { 'urls': 'stun:stun.callwithus.com'},
+        { 'urls': 'stun:stun.ekiga.net'}
+
     ]
 }
 //https://hpbn.co/webrtc/
 var streamConstraints = {
-    video: {
+    video: true,/* {
     width: { min: 1024, ideal: 1280, max: 1920 },
     height: { min: 576, ideal: 720, max: 1080 }
-    },
+    }, */
     audio: {
         echoCancellation: true,
         noiseSupression: true
-    },  
-    facingMode: { exact: "user" }//environment
+    }  
+    //facingMode: { exact: "user" }//environment
 };
 
 var displayMediaOptions = {

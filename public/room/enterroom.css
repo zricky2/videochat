@@ -1,0 +1,22 @@
+body {
+    line-height: 1.8;
+    background-color: #7897ef;
+    color: #2a2a35;
+    font-family: "Raleway", sans-serif;
+}
+
+.w3-bar .w3-button {
+    padding: 16px;
+}
+
+#selectRoom {
+    text-align: center;
+    margin-top: 200px;
+}
+
+button {
+    background-color: unset;
+    border-style: solid;
+    border-color: unset;
+}
+
