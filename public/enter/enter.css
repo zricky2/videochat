@@ -12,10 +12,11 @@ body {
 #selectRoom {
     text-align: center;
     margin-top: 200px;
+    font-size: x-large;
 }
 
-button {
-    background-color: unset;
+input, button {
+    background-color: white;
     border-style: solid;
     border-color: unset;
 }

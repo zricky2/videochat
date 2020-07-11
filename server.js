@@ -1,10 +1,8 @@
-const fs = require('fs');
+//const fs = require('fs');
 //const path = require('path');
 const express = require('express');
 const app = express();
 const routes = require('./routes/index')
-
-var indexRouter = require('./routes/index')
 
 app.use(express.static('public'));
 //__dirname : It will resolve to your project folder.
@@ -16,7 +14,11 @@ app.get('/room', (req, res) => {
     res.sendFile(__dirname + '/public/room/room.html');
 })
 
-var server = app.listen(process.env.PORT || 3000, listen);
+app.get('/enter', (req, res) => {
+    res.sendFile(__dirname + '/public/enter/enter.html');
+})
+
+const server = app.listen(process.env.PORT || 3000, listen);
 
 function listen() {
     var host = server.address().address;
@@ -24,62 +26,71 @@ function listen() {
     console.log('Listening at http://' + host + ':' + port);
 }
 
-var io = require('socket.io')(server);
-//signaling handlers
+const io = require('socket.io')(server);
+
 io.on('connection', socket => {
-    console.log("New User: " + socket.id);
-
-    //when the client emits create or join
-    socket.on("create or join", room => {
-        console.log("create or join room: " + room);
-
+    socket.on("checkroom", room => {
         //count the number of users in room
-        var myRoom = io.sockets.adapter.rooms[room] || { length: 0 };
-        var numClients = myRoom.length;
-
-        if (numClients == 0) {
-            //To join a room you need to provide the room name as the argument to your join function call.
-            socket.join(room);
-            console.log(room, "has", numClients + 1, "clients");
-            socket.emit('created')
-        } else if (numClients == 1) {
-            //To join a room you need to provide the room name as the argument to your join function call.
-            socket.join(room);
-            console.log(room, "has", numClients + 1, "clients");
-            socket.emit('joined', room);
-        } else {
+        let myRoom = io.sockets.adapter.rooms[room] || { length: 0 };
+        let numClients = myRoom.length;
+        if (numClients >= 5) {
             socket.emit('full', room);
+        } else {
+            socket.emit('enter')
         }
+    })
 
+    socket.on("create or join", room => {
+        //count the number of users in room
+        let myRoom = io.sockets.adapter.rooms[room] || { length: 0 };
+        let numClients = myRoom.length;
+
+        if (numClients >= 5) {//5
+            socket.emit('full', room);
+        } else {
+            if (numClients == 0) {
+                socket.emit('created');
+            } else {
+                socket.emit('joined', Object.keys(myRoom.sockets));
+            }
+            //To join a room you need to provide the room name as the argument to your join function call.
+            socket.join(room);
+            console.log(room, "has", numClients + 1, "clients");
+        }
     })
     //relay only handlers 
     socket.on('ready', (roomNumber) => {
         console.log("ready");
         // sending to all clients in 'room' room except sender
-        socket.to(roomNumber).emit('ready');
-    })
-
-    socket.on('candidate', event => {
-        console.log("candidate");
-        socket.to(event.room).emit('candidate', event);
+        socket.to(roomNumber).emit('ready', socket.id);
     })
 
     socket.on('offer', event => {
         console.log("offer");
-        socket.to(event.room).emit('offer', event.sdp);
+        //socket.to(event.room).emit('offer', event.sdp);
+        // sending to individual socketid
+        socket.broadcast.to(event.toId).emit('offer', event);
     })
+
+    socket.on('candidate', event => {
+        console.log("candidate");
+        //socket.to(event.room).emit('candidate', event);
+        socket.broadcast.to(event.toId).emit('candidate', event);
+    })
+
     socket.on('answer', event => {
         console.log("answer");
-        socket.to(event.room).emit('answer', event.sdp);
+        //socket.to(event.room).emit('answer', event.sdp);
+        socket.broadcast.to(event.toId).emit('answer', event);
     })
 
     //send file's info
     socket.on('file', event => {
         socket.to(event.room).emit('file', event);
     })
-
-    socket.on('leave', roomNumber => {
-        socket.to(roomNumber).emit('leave', roomNumber);
+    
+    socket.on('leave', message => {
+        socket.to(message.room).emit('leave', message.id);
     })
 
     socket.on('startshare', roomNumber => {
@@ -90,10 +101,13 @@ io.on('connection', socket => {
         socket.to(roomNumber).emit('stopshare', roomNumber);
     })
 
+    socket.on('disconnecting', e => {
+        let rooms = Object.keys(socket.rooms);
+        socket.to(rooms[0]).emit('leave', socket.id);
+    });
+
     socket.on('disconnect', event => {
-        //socket.leave(room);
         console.log(socket.id + " has disconnected");
-        //socket.to(event.room).emit('leave', event);
     });
 
 })

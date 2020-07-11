@@ -4,77 +4,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Call</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+    <title>LIVCODE</title>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+    <script defer src="client.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    <div id="selectRoom">
-        <h1>LivCode</h1>
-        <label>Type the room number</label>
-        <input id="roomNumber" type="text" />
-        <button id="goRoom">Go</button>
-        <p>Create a room or join a existing room</p>
+    <div id="room">
+        <div class="main">
+            <div class="users">
+                <div class="videobox">
+                    <video class="stream" id="localVideo" autoplay playsinline></video>
+                </div>
+                <div class="remotebox"></div>
+            </div>
+
+            <div id="bottombar">
+                <button id="openchat" class="bottombutton">Chat</button>
+                <button id="openlivetext" class="bottombutton">Live Code</button>
+                <button id="openfiles" class="bottombutton">Capture</button>
+                <button id="audio" class="bottombutton options">Mute</button>
+                <button id="video" class="bottombutton options">Stop Video</button>
+                <button id="share" class="bottombutton options">Share Screen</button>
+                <button id="leave" class="bottombutton">Leave</button>
+            </div>
+        </div>
+
+        <div class="features">
+            <div class="chatandfile">
+                <div id="chatbox" class="box">
+                    <div class="title">Chat
+                        <button id="closechat" class="close">&times</button>
+                    </div>
+                    <div class="messages"></div>
+                    <div class="text">
+                        <textarea id="message" placeholder="Type a message..." rows="4" cols="20" maxlength="120"
+                            autofocus='false'></textarea>
+                        <button id="sendbutton" disabled>Send</button>
+                    </div>
+                </div>
+
+                <div class="files" id="filesbox">
+                    <div class="title">Files</div>
+                    <div class="fileinput">
+                        <label for="myfile">Select files:</label>
+                        <input type="file" id="myFile" multiple size="50">
+                        <button id="fileupload" disabled>Send Files</button>
+                        <!-- <div class="progress"><br>
+                            <div class="label">Send progress: </div>
+                            <progress id="sendProgress" max="0" value="0"></progress>
+                        </div>
+                        <div class="progress">
+                            <div class="label">Receive progress: </div>
+                            <progress id="receiveProgress" max="0" value="0"></progress>
+                        </div> -->
+                        <div id=fileList><ul class='filelist'></ul></div>
+                        <a id="download"></a>
+                    </div>
+                </div>
+            </div>
+            <div id="livetextbox" class="box">
+                <div class="title">Live Code
+                    <button id="copytext">Copy All</button>
+                    <button id="closelivetext" class="close">&times</button>
+                </div>
+                <textarea id="livetextarea" placeholder="Type code here. Other users will see it instantly as you type!"
+                    wrap="soft" rows="20" cols="50"></textarea>
+            </div>
+
+            <div class="capture">
+                <div class="title">Capture</div>
+                <div class="capturebody">
+                    <button>Take Photo</button>
+                    <canvas></canvas>
+                </div>
+            </div>
+
+        </div>
+
     </div>
-
-    <div id="consultingRoom" class="box">
-        <div class="users">
-            <div class="videobox">
-                <video class="stream" id="localVideo" autoplay playsinline></video>
-            </div>
-        </div>
-
-        <div class="box" id="chatbox">
-            <div class="title">Chatbox
-                <button id="closechat" class="close">&times</button>
-            </div>
-            <div class="messages"></div>
-            <div class="text">
-                <textarea id="message" placeholder="Type a message..." rows="4" cols="20" maxlength="120"></textarea>
-                <button id="sendButton" disabled>Send</button>
-            </div>
-        </div>
-
-        <div id="livetextbox" class="box">
-            <div class="title">Live Text
-                <button id="copytext">Copy All</button>
-                <button id="closelivetext" class="close">&times</button>
-            </div>
-            <textarea id="livetextarea" placeholder="Other users will see your text instantly when you type in here!"
-                wrap="soft" rows="20" cols="50"></textarea>
-        </div>
-
-        <div class="files" id="filesbox">
-            <div class="title">Files<button id="closefiles" class="close">&times</button>
-            </div>
-            <label for="myfile">Select files:</label>
-            <input type="file" id="myFile" multiple size="50">
-            <button id="fileupload" disabled>Send Files</button>
-            <div class="progress"><br>
-                <div class="label">Send progress: </div>
-                <progress id="sendProgress" max="0" value="0"></progress>
-            </div>
-            <div class="progress">
-                <div class="label">Receive progress: </div>
-                <progress id="receiveProgress" max="0" value="0"></progress>
-            </div>
-            <div id=fileList></div>
-            <a id="download"></a>
-        </div>
-
-        <div id="bottombar">
-            <button id="openchat" class="bottombutton">Chat</button>
-            <button id="openlivetext" class="bottombutton">Live Text</button>
-            <button id="openfiles" class="bottombutton">Files</button>
-            <button id="audio" class="bottombutton options">Mute</button>
-            <button id="video" class="bottombutton options">Stop Video</button>
-            <button id="share" class="bottombutton options">Share Screen</button>
-            <button id="leave" class="bottombutton">Leave</button>
-        </div>
-
-    </div>
-    <script src="client.js"></script>
 </body>
 
 </html>

@@ -1,167 +1,76 @@
-body {
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+
+#room {
+  background-color: black;
+  width: 100%;
+  height: 100%;
   text-align: center;
-  background-image: url("/images/stars.jpg");
-  background-size: contain;
-  color: white;
 }
 
-#selectRoom {
-  margin-top: 175px;
-  font-size: xx-large;
+.main {
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  background-color: black;
+  color: #ffffff;
 }
 
-#consultingRoom {
-  display: none;
+.users {
+  width: 100%;
+  height: 90%;
+}
+
+.videobox {
+  height: 75%;
+}
+
+.remotebox {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  height: 25%;
 }
 
 .stream {
-  width: 100%;
-  border-radius: 10px;
+  max-width: 100%;
+  height: 100%;
 }
 
 .remote {
-  width: 100%;
-  border-radius: 10px;
+  max-width: 100%;
+  height: 100%;
 }
 
-.local {
-  max-width: 200px;
-  border-radius: 10px;
-  position: fixed;
-  bottom: 70px;
-  right: 5px;
+.features {
+  display: none;
 }
 
-#chatbox {
-    display: none;
-    background-color: whitesmoke;
-    position: fixed;
-    bottom: 40px;
-    right: 15px;
-    z-index: 1; /* Sit on top */
-    border-radius: 10px;
-    
-}
-
-  #chatbox > .title {
-  border-top-left-radius: 10px;
-  border-top-right-radius: 10px;
-  width: 100%;
-  }
-
-  #chatbox > .messages {
-    min-height: 250px;
-    overflow-y: auto;
-    border-bottom: solid;
-    border-bottom-color: gray;
-    border-bottom-width: 1px;
-    font-size: 10px;
-    display: block;
-    overflow-y: scroll;
-  }
-
-  #chatbox > .text {
-    height: 40px;
-    font-size: 10px;
-  }
-
-  #chatbox > .text > #message {
-    resize: none;
-    border-style: none;
-    height: 30px;
-    margin-left: 5px;
-  }
-
-  #sendbutton {
-    border-style: none;
-    background-color: slategray;
-    color: white;
-  }
-
-.allmessages {
-  border-radius: 20px;
-  padding: 10px;
-  margin: 10px 0;
-  min-width: 80%;
-  min-height: 20px;
-  color: black;
-  overflow: auto;
-}
-
-.localmessages {
-  background-color: #0bdafb;
-  float: right;
-}
-
-.remotemessages {
-  background-color: lightgray;
+.featuresadjusted {
+  display: block;
   float: left;
+  width: 25%;
+  height: 100%;
 }
 
-  #livetextbox {
-    display: none;
-    position: fixed;
-    bottom: 40px;
-    right: 15px;
-    z-index: 1; /* Sit on top */
-    border-radius: 10px;
-  }
-
-  #livetextarea {
-    overflow: auto;
-    text-align: left;
-    resize: none;
-  }
-
-  .title {
-  background-color: black;
-  color: white;
-  text-align: left;
-  font-size: large;
-  text-indent: 2px;
-  min-height: 50px;
-  }
-
-  .close {
-    float: right;
-    border-style: none;
-    background-color: inherit;
-    font-size: xx-large;
-    color: white;
-  }
-
-  #filesbox {
-    display: none;
-    background-color: white;
-    position: fixed;
-    bottom: 40px;
-    right: 15px;
-    z-index: 1; /* Sit on top */
-    border-radius: 10px;
-    width: 300px;
-    height: 250px;
-    color: black;
-    overflow: auto;
-  }
-
-  #filesbox > input {
-    margin-left: 70px;
-  }
-  /* Button used to open the chat form - fixed at the bottom of the page */
+.mainadjusted {
+  float: left;
+  width: 75%;
+}
 
 #bottombar {
-  position: fixed;
-  background-color: black;
-  bottom: 0;
-  right: 0;
-  left: 0;
+  background-color: #333333;
+  width: 100%;
+  height: 10%;
   display: flex;
-  flex-direction: row;
   justify-content: center;
 }
 
 .bottombutton {
-  background-color: black;
+  background-color: #333333;
   color: rgb(182, 182, 182);
   text-align: center;
   padding: 14px 16px;
@@ -186,6 +95,178 @@ body {
   margin-left: auto;
 }
 
+.chatandfile {
+  display: none;
+  width: 100%;
+  height: 100%;
+}
 
+#chatbox {
+  width: 100%;
+  height: 70%;
+}
 
+#chatbox > .title {
+  background-color:  black;
+  width: 100%;
+  height: 10%;
+  color: white;
+  font-size: xx-large;
+}
+
+#chatbox > .messages {
+  background-color: white;
+  height: 80%;
+  width: 100%;
+  display: block;
+  font-size: 10px;
+  overflow-y: scroll;
+  border-bottom: #333333;
+}
+
+#chatbox > .text {
+  background-color: white;
+  color: black;
+  height: 10%;
+  font-size: 10px;
+}
+
+#chatbox > .text > #message {
+  background-color: white;
+  color: black;
+  resize: none;
+  float: left;
+  height: 100%;
+  -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+  -moz-box-sizing: border-box;    /* Firefox, other Gecko */
+  box-sizing: border-box;
+  outline: none;
+}
+
+#chatbox > .text > #message::placeholder {
+  color: black;
+}
+
+#sendbutton {
+  margin-top: 20px;
+  border-style: none;
+  width: 15%;
+  font-size: 90%;
+  text-align: center;
+}
+
+.allmessages {
+  border-radius: 20px;
+  padding: 10px;
+  margin: 10px 0;
+  min-width: 80%;
+  min-height: 20px;
+  color: black;
+  overflow: auto;
+}
+
+.localmessages {
+  background-color: #0bdafb;
+  float: right;
+}
+
+.remotemessages {
+  background-color: lightgray;
+  float: left;
+}
+
+#livetextbox {
+  display: none;
+  width: 100%;
+  height: 100%;
+}
+
+.title {
+  background-color: #5b5563;
+  color: #3eb0dc;
+  text-align: left;
+  font-size: xx-large;
+  text-indent: 2px;
+  height: 10%;
+}
+
+#livetextarea {
+  height: 90%;
+  background-color: #5b5563;
+  color: #3eb0dc;
+  overflow: auto;
+  text-align: left;
+  resize: none;
+  outline-color: #333333;
+  outline: none;
+  -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+  -moz-box-sizing: border-box;    /* Firefox, other Gecko */
+  box-sizing: border-box;
+}
+
+#livetextarea::placeholder {
+  color: #3eb0dc;
+}
+
+.close {
+  float: right;
+  border-style: none;
+  background-color: inherit;
+  font-size: xx-large;
+  color: white;
+}
+
+#filesbox {
+  width: 100%;
+  height: 30%;
+}
+
+#filesbox > .title {
+  background-color: black;
+  color: white;
+  max-width: 100%;
+  height: 20%;
+}
+
+#filesbox > .fileinput {
+  background-color: white;
+  max-width: 100%;
+  height: 80%;
+}
+  
+.capture {
+  display: none;
+  width: 100%;
+  height: 100%;
+}
+
+.capture > .title {
+  width: 100%;
+  height: 10%;
+}
+
+ul {
+  list-style-type: none;
+}
+
+ul li {
+  border: 1px solid #ddd;
+  margin-top: -1px; /* Prevent double borders */
+  background-color: #f6f6f6;
+  padding: 12px;
+  text-decoration: none;
+  font-size: 18px;
+  color: black;
+  display: block;
+  position: relative;
+}
+
+/* Add a light grey background color on hover */
+ul li:hover {
+  background-color: #eee;
+}
+
+.fileclose {
+  cursor: pointer;
+}
 

@@ -4,11 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Livcode</title>
+    <title>LIVCODE</title>
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link rel="stylesheet" href="enterroom.css">
+    <link rel="stylesheet" href="enter.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
 </head>
 
 <body>
@@ -21,12 +22,12 @@
 
     <div id="selectRoom">
         <h1>LIVCODE</h1>
-        <label>Type the room number</label>
-        <input id="roomNumber" type="text" />
+        <label for="roomnumber">Type the room number</label>
+        <input type="text" id="roomNumber" name="roomnumber" required maxlength="10" />
         <button id="goRoom">Go</button>
         <p>Create a room or join a existing room</p>
     </div>
-
+    <script src="enter.js"></script>
 </body>
 
 </html>
