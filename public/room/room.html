@@ -14,16 +14,21 @@
     <div id="room">
         <div class="main">
             <div class="users">
-                <div class="videobox">
-                    <video class="stream" id="localVideo" autoplay playsinline></video>
+                <div class="bigbox">
+                    <div class="local videobox">
+                        <div class="username"></div>
+                        <video class="videosize" id="localVideo" autoplay playsinline></video>
+                    </div>
                 </div>
-                <div class="remotebox"></div>
+                <div class="smallbox">
+                    <!--small videos-->
+                </div>
             </div>
 
             <div id="bottombar">
                 <button id="openchat" class="bottombutton">Chat</button>
                 <button id="openlivetext" class="bottombutton">Live Code</button>
-                <button id="openfiles" class="bottombutton">Capture</button>
+                <!-- <button id="capture" class="bottombutton">Capture</button> -->
                 <button id="audio" class="bottombutton options">Mute</button>
                 <button id="video" class="bottombutton options">Stop Video</button>
                 <button id="share" class="bottombutton options">Share Screen</button>
@@ -48,38 +53,37 @@
                 <div class="files" id="filesbox">
                     <div class="title">Files</div>
                     <div class="fileinput">
-                        <label for="myfile">Select files:</label>
+                        <label for="myfile">Select files to send:</label>
                         <input type="file" id="myFile" multiple size="50">
-                        <button id="fileupload" disabled>Send Files</button>
-                        <!-- <div class="progress"><br>
-                            <div class="label">Send progress: </div>
-                            <progress id="sendProgress" max="0" value="0"></progress>
+                        <button id="fileupload" disabled>Send</button>
+                    </div>
+                    <div class=fileList>
+                        <button onclick="fileDropDown()" class="dropbtn">Received Files</button>
+                        <div id="myDropdown" class="dropdown-content">
+                            <ul class='filelist'></ul>
                         </div>
-                        <div class="progress">
-                            <div class="label">Receive progress: </div>
-                            <progress id="receiveProgress" max="0" value="0"></progress>
-                        </div> -->
-                        <div id=fileList><ul class='filelist'></ul></div>
-                        <a id="download"></a>
                     </div>
                 </div>
             </div>
+
             <div id="livetextbox" class="box">
                 <div class="title">Live Code
-                    <button id="copytext">Copy All</button>
                     <button id="closelivetext" class="close">&times</button>
                 </div>
                 <textarea id="livetextarea" placeholder="Type code here. Other users will see it instantly as you type!"
-                    wrap="soft" rows="20" cols="50"></textarea>
+                    wrap="soft"></textarea>
+                <div class="copy">
+                    <button id="copytext">Copy All</button>
+                </div>
             </div>
 
-            <div class="capture">
+            <!-- <div class="capture">
                 <div class="title">Capture</div>
                 <div class="capturebody">
                     <button>Take Photo</button>
                     <canvas></canvas>
                 </div>
-            </div>
+            </div> -->
 
         </div>
 

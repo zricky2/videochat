@@ -94,15 +94,19 @@ io.on('connection', socket => {
     })
 
     socket.on('startshare', roomNumber => {
-        socket.to(roomNumber).emit('startshare', roomNumber);
+        socket.to(roomNumber).emit('startshare', socket.id);
     })
 
     socket.on('stopshare', roomNumber => {
-        socket.to(roomNumber).emit('stopshare', roomNumber);
+        socket.to(roomNumber).emit('stopshare', socket.id);
+    })
+
+    socket.on('newoffer', roomNumber => {
+        socket.to(roomNumber).emit('newoffer', socket.id);
     })
 
     socket.on('disconnecting', e => {
-        let rooms = Object.keys(socket.rooms);
+        const rooms = Object.keys(socket.rooms);
         socket.to(rooms[0]).emit('leave', socket.id);
     });
 

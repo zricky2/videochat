@@ -9,7 +9,8 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="enter.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+    <script defer src="enter.js"></script>
 </head>
 
 <body>
@@ -20,14 +21,21 @@
         </div>
     </div>
 
-    <div id="selectRoom">
+    <div id="selectroom">
         <h1>LIVCODE</h1>
-        <label for="roomnumber">Type the room number</label>
+        <label for="roomnumber">Type the room name</label>
         <input type="text" id="roomNumber" name="roomnumber" required maxlength="10" />
-        <button id="goRoom">Go</button>
-        <p>Create a room or join a existing room</p>
+        <button id="next">Enter</button>
+        <p>Create a room or join a existing room.</p>
     </div>
-    <script src="enter.js"></script>
+    <div id="selectname">
+        <h1>LIVCODE</h1>
+        <label for="username">Type in your name</label>
+        <input type="text" id="username" name="username" required maxlength="10" />
+        <button id="go">Go</button>
+        <p>Choose a name to be displayed for others to see.</p>
+    </div>
+
 </body>
 
 </html>

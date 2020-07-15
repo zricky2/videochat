@@ -9,7 +9,14 @@ body {
     padding: 16px;
 }
 
-#selectRoom {
+#selectroom {
+    text-align: center;
+    margin-top: 200px;
+    font-size: x-large;
+}
+
+#selectname {
+    display: none;
     text-align: center;
     margin-top: 200px;
     font-size: x-large;

@@ -1,5 +1,5 @@
-var divConsultingRoom = document.querySelector("#room");
 var localVideo = document.querySelector("#localVideo");
+var localBox = document.getElementsByClassName('local')[0];
 var audioButton = document.querySelector('#audio');
 var videoButton = document.querySelector('#video');
 var shareButton = document.querySelector('#share');
@@ -9,31 +9,28 @@ var messageInputBox = document.getElementById('message');
 var messagesBox = document.getElementsByClassName('messages')[0];
 var filePackage = document.getElementById("myFile");
 var uploadButton = document.getElementById("fileupload");
-//var sendProgress = document.querySelector('progress#sendProgress');
 var downloadAnchor = document.querySelector('a#download');
-//var receiveProgress = document.querySelector('progress#receiveProgress');
 var fileList = document.getElementById("fileList");
 var copyText = document.getElementById("copytext");
 var liveText = document.getElementById("livetextarea");
 var users = document.getElementsByClassName('users')[0];
-var remoteBox = document.getElementsByClassName('remotebox')[0];
-var chatBox = document.getElementsByClassName("chatandfile")[0];
+var chatAndFile = document.getElementsByClassName("chatandfile")[0];
 var openChat = document.getElementById("openchat");
 var closeChat = document.getElementById("closechat");
 var openFiles = document.getElementById("openfiles");
 var closeFiles = document.getElementById("closefiles");
-var filesBox = document.getElementById("filesbox");
 var liveTextBox = document.getElementById("livetextbox");
 var openLiveText = document.getElementById("openlivetext");
 var closeLiveText = document.getElementById("closelivetext");
 var main = document.getElementsByClassName('main')[0];
 var features = document.getElementsByClassName('features')[0];
 var filelist = document.getElementsByClassName('filelist')[0];
+var smallBox = document.getElementsByClassName('smallbox')[0];
+var bigBox = document.getElementsByClassName('bigbox')[0];
 
 var roomNumber;
+var username;
 var localStream;
-var remoteStream;
-var isCaller;
 var audio;
 var video;
 var share;
@@ -63,12 +60,11 @@ var streamConstraints = {
             ideal: 60,
             min: 10,
         }
+    },
+    audio: {
+        echoCancellation: false,
+        googAutoGainControl: false
     }
-    /* audio: {
-        echoCancellation: true,
-        noiseSuppression: true,
-        sampleRate: 44100
-    } */
     //facingMode: { exact: "user" }//environment
 };
 
@@ -77,26 +73,48 @@ var displayMediaOptions = {
         cursor: "always"
     },
     audio: {
-        echoCancellation: true,
-        noiseSuppression: true,
-        sampleRate: 44100
+        echoCancellation: false,
+        noiseSupression: false,
+        autoGainControl: false,
+        googAutoGainControl: false
     }
 };
+
+/* var front = false;
+document.getElementById('flip-button').onclick = function() { front = !front; };
+
+var constraints = { video: { facingMode: (front? "user" : "environment") } }; */
 
 //connect to socket
 const socket = io();
 
 if (!('mediaDevices' in navigator && 'getUserMedia' in navigator.mediaDevices)) {
-    alert("No media devices to support getUserMedia.");
+    alert("No media devices to support video call. Make sure your camera and microphone is enabled. \n Make sure to use https.");
 } else {
     room();
 }
 
+/* if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+    console.log("enumerateDevices() not supported.");
+    return;
+}
+
+navigator.mediaDevices.enumerateDevices()
+    .then(function (devices) {
+        devices.forEach(function (device) {
+            console.log(device.kind + ": " + device.label +
+                " id = " + device.deviceId);
+        });
+    })
+    .catch(function (err) {
+        console.log(err.name + ": " + err.message);
+    }); */
+
 function room() {
-    let url = document.location.href;
-    let param = decodeURIComponent(url.split('?')[1]);
-    roomNumber = param.split('=')[1];
-    console.log(roomNumber);
+    let param = decodeURIComponent((document.location.href).split('?')[1]);
+    param = param.split('&');
+    roomNumber = param[0].split('=')[1];
+    username = param[1].split('=')[1];
     socket.emit("create or join", roomNumber);
 }
 
@@ -128,7 +146,7 @@ leaveButton.addEventListener('click', leaveRoom);
 
 sendButton.addEventListener('click', sendMessage);
 
-filePackage.addEventListener('change', fileInfo);
+filePackage.addEventListener('change', uploadEnable);
 
 uploadButton.addEventListener('click', sendFile);
 
@@ -146,16 +164,7 @@ openChat.addEventListener("click", (e) => {
 closeChat.addEventListener("click", () => {
     main.classList.remove('mainadjusted');
     features.classList.remove('featuresadjusted');
-    
 });
-
-openFiles.addEventListener("click", (e) => {
-    openBox("files");
-});
-
-/* closeFiles.addEventListener("click", () => {
-    filesBox.style.display = "none";
-}); */
 
 openLiveText.addEventListener("click", (e) => {
     openBox("text");
@@ -172,19 +181,16 @@ function openBox(box) {
     features.classList.add('featuresadjusted');
     switch (box) {
         case "chatandfile":
-            chatBox.style.display = "block";
-            //filesBox.style.display = "none";
-            liveTextBox.style.display = "none";
-            break;
-        case "files":
-            chatBox.style.display = "none";
-            filesBox.style.display = "block";
+            chatAndFile.style.display = "block";
             liveTextBox.style.display = "none";
             break;
         case "text":
-            chatBox.style.display = "none";
-            filesBox.style.display = "none";
+            chatAndFile.style.display = "none";
             liveTextBox.style.display = "block";
+            break;
+        case "capture":
+            chatAndFile.style.display = "none";
+            liveTextBox.style.display = "none";
             break;
     }
 }
@@ -192,16 +198,14 @@ function openBox(box) {
 //when server emits created
 socket.on('created', () => {
     console.log('New room is created');
-    //set up video
-    startVideo(true);
+    startVideo(false);
 })
 
 //when server emits joined
 socket.on('joined', (id) => {
     console.log('join room');
-    //set up video
     connections = id;
-    startVideo(false);
+    startVideo(true);
 })
 
 socket.on('full', () => {
@@ -209,7 +213,7 @@ socket.on('full', () => {
 })
 
 function ready() {
-    let num = connections.length;
+    const num = connections.length;
     for (let i = 0; i < num; i++) {
         createRTC(connections[i], true);
         //adds the current local stream to the object
@@ -223,12 +227,13 @@ function ready() {
                 rtcPeerConnection[connections[i]].setLocalDescription(sessionDescription)
                     .then(() => { console.log("setLocalDescription()") })
                     .catch(error => { console.log(error) })
-                var data = {
+                const data = {
                     type: 'offer',
                     sdp: sessionDescription,
                     room: roomNumber,
                     toId: connections[i],
-                    fromId: socket.id
+                    fromId: socket.id,
+                    name: username
                 }
                 socket.emit('offer', data);
             })
@@ -239,6 +244,7 @@ function ready() {
 //when servers emits offer
 socket.on('offer', offer => {
     createRTC(offer.fromId, false);
+    addName(offer.fromId, offer.name)
     connections.push(offer.fromId);
     //stores the offer as remote description
     rtcPeerConnection[offer.fromId].setRemoteDescription(offer.sdp)
@@ -256,12 +262,13 @@ socket.on('offer', offer => {
             rtcPeerConnection[offer.fromId].setLocalDescription(sessionDescription)
                 .then(() => { console.log("setLocalDescription()") })
                 .catch(error => { console.log(error) });
-            var data = {
+            const data = {
                 type: 'answer',
                 sdp: sessionDescription,
                 room: roomNumber,
                 toId: offer.fromId,
-                fromId: socket.id
+                fromId: socket.id,
+                name: username
             }
             socket.emit('answer', data)
         })
@@ -272,14 +279,17 @@ socket.on('offer', offer => {
 socket.on('answer', answer => {
     //stores it as remote description
     rtcPeerConnection[answer.fromId].setRemoteDescription(new RTCSessionDescription(answer.sdp))
-        .then(() => { console.log("setRemoteDescription()") })
+        .then(() => {
+            console.log("setRemoteDescription()");
+            addName(answer.fromId, answer.name);
+        })
         .catch(err => { console.log(err) })
 })
 
 //when server emits candidate
 socket.on('candidate', message => {
     //creates a candidate object
-    var candidate = new RTCIceCandidate({
+    const candidate = new RTCIceCandidate({
         sdpMLineIndex: message.label,
         candidate: message.id
     });
@@ -304,21 +314,17 @@ socket.on('leave', id => {
     if (index > -1) {
         connections.splice(index, 1);
     } else {
-        console.log("error: connection does not exist");
+        console.log("Error: rtcpeerconnection does not exist");
     }
-    
 })
 
-socket.on('startshare', e => {
-    remoteVideo.controls = true;
+socket.on('startshare', id => {
+    document.getElementById(id).controls = true;
 })
 
-socket.on('stopshare', e => {
-    remoteVideo.controls = false;
+socket.on('stopshare', id => {
+    document.getElementById(id).controls = false;
 })
-
-//These are the reference functions for the event listener
-//sends a candidate message to server
 
 function createRTC(id, isCaller) {
     //creates a RTCPeerConnection
@@ -334,7 +340,14 @@ function createRTC(id, isCaller) {
     rtcPeerConnection[id].addEventListener("icecandidate", event => createICE(event, id));
     rtcPeerConnection[id].addEventListener("iceconnectionstatechange", event => stateChange(event, id));
     rtcPeerConnection[id].addEventListener("track", event => addRemote(event, id));
+    //rtcPeerConnection[id].addEventListener("negotiationneeded", event => offer );
     createRemote(id); //create remote video
+}
+
+function addName(id, name) {
+    const box = document.getElementById(id + 'box');
+    let head = box.childNodes[0];
+    head.innerHTML = name;
 }
 
 function createICE(event, id) {
@@ -352,7 +365,7 @@ function createICE(event, id) {
 }
 
 function addRemote(event, id) {
-    remoteStream = event.streams[0];
+    const remoteStream = event.streams[0];
     document.getElementById(id).srcObject = remoteStream;
 }
 
@@ -385,6 +398,11 @@ function receiveChannel(event, id) {
 }
 
 function stateChange(event, id) {
+    if (rtcPeerConnection[id].iceConnectionState === "failed") {
+        /* possibly reconfigure the connection in some way here */
+        console.log('Connection failed');
+        rtcPeerConnection[id].restartIce();
+    }
     console.log(`Iceconnection state: ${rtcPeerConnection[id].iceConnectionState}`);//looking for completed
 };
 
@@ -392,26 +410,37 @@ function createRemote(id) {
     let videoBox = document.createElement('div');
     videoBox.classList.add('videobox');
     videoBox.id = `${id}box`;
-    //let user = document.createElement("h3");
-    //user.innerHTML = "Remote";
+    let name = document.createElement("div");
+    name.classList.add('username');
     let remoteVideo = document.createElement("video");
     remoteVideo.id = id;
-    remoteVideo.classList.add("remote");
+    remoteVideo.classList.add('videosize');
     remoteVideo.autoplay = true;
     remoteVideo.playsInline = true;
-    //videoBox.appendChild(user);
+    videoBox.appendChild(name);
     videoBox.appendChild(remoteVideo);
-    remoteBox.appendChild(videoBox);
+    videoBox.addEventListener('click', e => switchToMain(videoBox));
+    smallBox.appendChild(videoBox);
 }
 
 function removeRemote(id) {
-    if (document.getElementById(`${id}box`) == null) {
-        return;
+    if (!(document.getElementById(`${id}box`) == null)) {
+        console.log(id + " left");
+        let remote = document.getElementById(`${id}box`);
+        remote.remove();
+        remote = null;
+        remoteStream = null;
     }
-    let remotebox = document.getElementById(`${id}box`);
-    remotebox.remove();
-    remotebox = null;
-    remoteStream = null;
+}
+
+function switchToMain(video) {
+    if (!bigBox.contains(video)) {
+        video.remove();
+        const current = bigBox.firstElementChild;
+        current.remove();
+        smallBox.insertAdjacentElement('beforeend', current);
+        bigBox.insertAdjacentElement('afterbegin', video);
+    }
 }
 
 //Each MediaStream object includes several MediaStreamTrack objects. They represent video and audio from different input devices.
@@ -420,28 +449,25 @@ function startVideo(created) {
         .then(stream => {
             localStream = stream;
             localVideo.srcObject = localStream;
+            localBox.addEventListener('click', e => switchToMain(localBox));
             if (created) {
-                //sets current user as caller
-                [audio, video] = [true, true];
-            } else {
-                [isCaller, audio, video] = [true, true, true];
                 ready();
-                //socket.emit('ready', roomNumber); //send message to server starts signaling
             }
-        }).catch(error => {
-            console.log("Error in starting video: " + error);
+            [audio, video] = [true, true];
+            localBox.firstElementChild.innerHTML = username;
+        }).catch(err => {
+            console.log("Error in starting video: " + err);
         })
 }
 
 /* This works by obtaining the video element's stream from its srcObject property. Then the stream's track list is obtained by calling its getTracks() method. From there, all that remains to do is to iterate over the track list using forEach() and calling each track's stop() method.
 Finally, srcObject is set to null to sever the link to the MediaStream object so it can be released. */
-function stopVideo() {
+function stopMedia() {
     const stream = localVideo.srcObject;
     const tracks = stream.getTracks();
-    tracks.forEach(track => {
-        track.stop(); //permanently stops the video
-    });
-    localVideo.srcObject = null;
+    //permanently stops the video
+    tracks.forEach(track => { track.stop() });
+    //localVideo.srcObject = null;
 }
 
 function audioOn() {
@@ -481,7 +507,7 @@ function videoOff() {
         t.enabled = false;
     });
     video = false;
-    videoButton.innerHTML = "Start Video"
+    videoButton.innerHTML = "Start Video";
 }
 
 function leaveRoom() {
@@ -490,21 +516,22 @@ function leaveRoom() {
         id: socket.id
     }
     socket.emit('leave', message);
-    document.cookie = "room=; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
     window.location = "/enter";//reload the page
 }
 
 function startShare() {
     navigator.mediaDevices.getDisplayMedia(displayMediaOptions)
         .then(stream => {
-            console.log("Share Screen");
-            stopVideo();
-            localStream = stream;
-            localVideo.srcObject = stream;
-            socket.emit('ready', roomNumber);
+            stopMedia();
             share = true;
-            shareButton.innerHTML = "Stop Sharing"
+            shareButton.innerHTML = "Stop Sharing";
+            audioButton.innerHTML = "Mute";
+            audio = false;
+            videoButton.innerHTML = "Start Video";
+            videoButton.disabled = true;
+            video = false;
             localVideo.controls = true;
+            replaceMedia(stream);
             socket.emit('startshare', roomNumber);
         })
         .catch(err => {
@@ -513,39 +540,62 @@ function startShare() {
 }
 
 function stopShare() {
-    let tracks = localVideo.srcObject.getTracks();
-    tracks.forEach(track => track.stop());
+    stopMedia();
     share = false;
-    shareButton.innerHTML = "Start Sharing"
-    startVideo(false);
+    shareButton.innerHTML = "Start Sharing";
+    navigator.mediaDevices.getUserMedia(streamConstraints)
+        .then(stream => {
+            replaceMedia(stream);
+        }).catch(err => {
+            console.log("Error in starting video: " + err);
+        })
     audioButton.innerHTML = "Mute";
+    audio = true;
     videoButton.innerHTML = "Stop Video";
+    videoButton.disabled = false;
+    video = true;
     localVideo.controls = false;
     socket.emit('stopshare', roomNumber);
+}
+
+function replaceMedia(stream) {
+    localStream = stream;
+    localVideo.srcObject = localStream;
+    const num = connections.length;
+    for (let i = 0; i < num; i++) {
+        Promise.all(rtcPeerConnection[connections[i]].getSenders().map(sender =>
+            sender.replaceTrack(stream.getTracks().find(t => t.kind == sender.track.kind), stream)));
+    }
+}
+
+function restartConnection() {
+    const num = connections.length;
+    for (let i = 0; i < num; i++) {
+        rtcPeerConnection[connections[i]].restartIce();
+    }
 }
 
 //chatbox
 function sendMessage() {
     var message = messageInputBox.value;
     if (message !== "") {
-        let num = connections.length;
-        let data = {
+        const data = {
             type: 'chat',
-            data: message
+            data: `${username}:  ${message}`
         }
-        for(let i = 0; i < num; i++) {
+        const num = connections.length;
+        for (let i = 0; i < num; i++) {
             if (dataChannel[connections[i]].readyState === "open") {
                 dataChannel[connections[i]].send(JSON.stringify(data));
             }
         }
         messageInputBox.value = "";
-        createLocalMessage(message);
+        createLocalMessage(`${username}:  ${message}`);
     }
 }
 
 function receiveMessage(event) {
-    console.log("received");
-    let message = event.data;
+    const message = event.data;
     if (typeof message === "string") {
         let data = JSON.parse(message);
         if (data.type === "chat") {
@@ -554,7 +604,7 @@ function receiveMessage(event) {
             receiveLiveText(data.data);
         }
     } else if (message.constructor.name === "ArrayBuffer") {
-        receiveFile(event); //MessageEvent {isTrusted: true, data: ArrayBuffer(16384), origin: "", lastEventId: "", source: null, …}
+        receiveFile(event);
     }
 }
 
@@ -574,52 +624,16 @@ function createRemoteMessage(message) {
     messagesBox.appendChild(div);
 }
 
-
-function fileInfo() {
-    /* var txt = "";
-    if ('files' in filePackage) {
-        if (filePackage.files.length == 0) {
-            txt = "Select one or more files.";
-        } else {
-            for (var i = 0; i < filePackage.files.length; i++) {
-                txt += "<br><strong>" + (i + 1) + ". file</strong><br>";
-                var file = filePackage.files[i];
-                if ('name' in file) {
-                    txt += "name: " + file.name + "<br>";
-                }
-                if ('size' in file) {
-                    txt += "size: " + file.size + " bytes <br>";
-                }
-            }
-        }
-    }
-    else {
-        if (filePackage.value == "") {
-            txt += "Select one or more files.";
-        } else {
-            txt += "The files property is not supported by your browser!";
-            txt += "<br>The path of the selected file: " + filePackage.value; // If the browser does not support the files property, it will return the path of the selected file instead. 
-        }
-    }
-    fileList.innerHTML = txt; */
-    
+function uploadEnable() {
     if (filePackage.files.length != 0) {
         uploadButton.disabled = false;
     }
-} 
-
+}
+//file
 function sendFile(event) {
     const chunkSize = 16384;
     for (let i = 0; i < filePackage.files.length; i++) {
         const file = filePackage.files[i];
-        //console.log(`File is ${[file.name, file.size, file.type, file.lastModified].join(' ')}`);
-        // Handle 0 size files.
-        /* if (file.size === 0) {
-            console.log('File is empty, please select a non-empty file');
-            return;
-        } */
-        //sendProgress.max = file.size;
-        
         const fileReader = new FileReader();
         let offset = 0;
         let data = {
@@ -635,7 +649,6 @@ function sendFile(event) {
                 if (dataChannel[connections[i]].readyState === "open") {
                     dataChannel[connections[i]].send(e.target.result);
                     offset += e.target.result.byteLength;
-                    //sendProgress.value = offset;
                     if (offset < file.size) {
                         readSlice(offset);
                     }
@@ -643,24 +656,62 @@ function sendFile(event) {
             }
         });
         const readSlice = o => {
-            //console.log('readSlice ', o);
             const slice = file.slice(offset, o + chunkSize);
             fileReader.readAsArrayBuffer(slice);
         };
         readSlice(0);
     }
-    console.log('sent');
     filePackage.value = null;
+    uploadButton.disabled = true;
 }
 
 function receiveFile(event) {
+    console.log(recFileName);
     receiveBuffer.push(event.data);
     receivedSize += event.data.byteLength;
-    //receiveProgress.value = receivedSize;
     if (receivedSize === recFileSize) {
         const received = new Blob(receiveBuffer);//object represents a blob, which is a file-like object of immutable, raw data; they can be read as text or binary data, or converted into a ReadableStream so its methods can be used for processing the data.
-        receiveBuffer = [];
         createFileItem(URL.createObjectURL(received));
+        receiveBuffer = [];
+        receivedSize = 0;
+    }
+}
+
+function createFileItem(item) {
+    console.log('lsitive');
+    let file = document.createElement('li');
+    let link = document.createElement('a');
+    link.setAttribute('href', item);
+    link.download = recFileName;
+    link.textContent = `'${recFileName}' (${recFileSize} bytes)`;
+    let close = document.createElement('span');
+    close.innerHTML = 'x';
+    close.classList.add('fileclose');
+    file.appendChild(link);
+    file.appendChild(close);
+    close.addEventListener('click', e => {
+        file.remove();
+    })
+    filelist.appendChild(file);
+}
+
+/* When the user clicks on the button,
+toggle between hiding and showing the dropdown content */
+function fileDropDown() {
+    document.getElementById("myDropdown").classList.toggle("show");
+}
+
+// Close the dropdown menu if the user clicks outside of it
+window.onclick = function (event) {
+    if (!event.target.matches('.dropbtn')) {
+        var dropdowns = document.getElementsByClassName("dropdown-content");
+        var i;
+        for (i = 0; i < dropdowns.length; i++) {
+            var openDropdown = dropdowns[i];
+            if (openDropdown.classList.contains('show')) {
+                openDropdown.classList.remove('show');
+            }
+        }
     }
 }
 
@@ -672,7 +723,7 @@ function sendLiveText(event) {
         data: text
     }
     let num = connections.length
-    for(let i = 0; i < num; i++) {
+    for (let i = 0; i < num; i++) {
         if (dataChannel[connections[i]].readyState === "open") {
             dataChannel[connections[i]].send(JSON.stringify(data));
         }
@@ -683,18 +734,3 @@ function receiveLiveText(e) {
     liveText.value = e;
 }
 
-function createFileItem(item) {
-    let file = document.createElement('li');
-    let close = document.createElement('span');
-    let link = document.createElement('a');
-    link.href = item;
-    link.download = recFileName;
-    link.textContent =`'${recFileName}' (${recFileSize} bytes)`;
-    link.style.display = 'block';
-    close.innerHTML = 'x';
-    close.classList.add('fileclose');
-    let content = document.createTextNode(link);
-    file.appendChild(content);
-    file.appendChild(close);
-    filelist.appendChild(file);
-}
