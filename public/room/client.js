@@ -319,10 +319,13 @@ socket.on('leave', id => {
 })
 
 socket.on('startshare', id => {
+    document.getElementById(id).classList.remove('videocall');
     document.getElementById(id).controls = true;
 })
 
+
 socket.on('stopshare', id => {
+    document.getElementById(id).classList.add('videocall');
     document.getElementById(id).controls = false;
 })
 
@@ -340,9 +343,30 @@ function createRTC(id, isCaller) {
     rtcPeerConnection[id].addEventListener("icecandidate", event => createICE(event, id));
     rtcPeerConnection[id].addEventListener("iceconnectionstatechange", event => stateChange(event, id));
     rtcPeerConnection[id].addEventListener("track", event => addRemote(event, id));
-    //rtcPeerConnection[id].addEventListener("negotiationneeded", event => offer );
+    //rtcPeerConnection[id].addEventListener("negotiationneeded", event => negotiate);
     createRemote(id); //create remote video
 }
+
+/* function negotiate(id) {
+    rtcPeerConnection[id].createOffer()
+            .then((sessionDescription) => {
+                //stores offer and sends message to server
+                console.log("createOffer()");
+                rtcPeerConnection[id].setLocalDescription(sessionDescription)
+                    .then(() => { console.log("setLocalDescription()") })
+                    .catch(error => { console.log(error) })
+                const data = {
+                    type: 'offer',
+                    sdp: sessionDescription,
+                    room: roomNumber,
+                    toId: connections[i],
+                    fromId: socket.id,
+                    name: username
+                }
+                socket.emit('offer', data);
+            })
+            .catch(e => { console.log(e); })
+} */
 
 function addName(id, name) {
     const box = document.getElementById(id + 'box');
@@ -415,6 +439,7 @@ function createRemote(id) {
     let remoteVideo = document.createElement("video");
     remoteVideo.id = id;
     remoteVideo.classList.add('videosize');
+    remoteVideo.classList.add('videocall');
     remoteVideo.autoplay = true;
     remoteVideo.playsInline = true;
     videoBox.appendChild(name);
@@ -436,9 +461,11 @@ function removeRemote(id) {
 function switchToMain(video) {
     if (!bigBox.contains(video)) {
         video.remove();
+        if (bigBox.hasChildNodes) {
         const current = bigBox.firstElementChild;
         current.remove();
         smallBox.insertAdjacentElement('beforeend', current);
+        }
         bigBox.insertAdjacentElement('afterbegin', video);
     }
 }
@@ -462,13 +489,6 @@ function startVideo(created) {
 
 /* This works by obtaining the video element's stream from its srcObject property. Then the stream's track list is obtained by calling its getTracks() method. From there, all that remains to do is to iterate over the track list using forEach() and calling each track's stop() method.
 Finally, srcObject is set to null to sever the link to the MediaStream object so it can be released. */
-function stopMedia() {
-    const stream = localVideo.srcObject;
-    const tracks = stream.getTracks();
-    //permanently stops the video
-    tracks.forEach(track => { track.stop() });
-    //localVideo.srcObject = null;
-}
 
 function audioOn() {
     const audioStream = localVideo.srcObject;
@@ -519,6 +539,14 @@ function leaveRoom() {
     window.location = "/enter";//reload the page
 }
 
+function stopMedia() {
+    const stream = localVideo.srcObject;
+    const tracks = stream.getTracks();
+    //permanently stops the video
+    tracks.forEach(track => { track.stop() });
+    //localVideo.srcObject = null;
+}
+
 function startShare() {
     navigator.mediaDevices.getDisplayMedia(displayMediaOptions)
         .then(stream => {
@@ -561,18 +589,27 @@ function stopShare() {
 function replaceMedia(stream) {
     localStream = stream;
     localVideo.srcObject = localStream;
+    if (localVideo.classList.contains('videocall')) {
+        localVideo.classList.remove('videocall');
+    } else {
+        localVideo.classList.add('videocall');
+    }
     const num = connections.length;
     for (let i = 0; i < num; i++) {
-        Promise.all(rtcPeerConnection[connections[i]].getSenders().map(sender =>
-            sender.replaceTrack(stream.getTracks().find(t => t.kind == sender.track.kind), stream)));
+        rtcPeerConnection[connections[i]].getSenders().map(sender => {
+            stream.getTracks().forEach(track => {
+                if (track.kind == sender.track.kind) {
+                sender.replaceTrack(track);
+                }
+            });       
+        })
+        /* rtcPeerConnection[connections[i]].getSenders().map(sender => {
+            sender.replaceTrack(stream.getTracks().find(t => t.kind == sender.track.kind), stream)});  */
     }
 }
 
 function restartConnection() {
-    const num = connections.length;
-    for (let i = 0; i < num; i++) {
-        rtcPeerConnection[connections[i]].restartIce();
-    }
+    rtcPeerConnection.forEach(rtc => rtc.restartIce());
 }
 
 //chatbox
