@@ -183,6 +183,7 @@ video::-webkit-media-controls-panel {
   font-size: 90%;
   text-align: center;
   background-color: skyblue;
+  outline: none;
 }
 
 .allmessages {

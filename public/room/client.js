@@ -61,10 +61,7 @@ var streamConstraints = {
             min: 10,
         }
     },
-    audio: {
-        echoCancellation: false,
-        googAutoGainControl: false
-    }
+    audio: true
     //facingMode: { exact: "user" }//environment
 };
 
@@ -72,12 +69,7 @@ var displayMediaOptions = {
     video: {
         cursor: "always"
     },
-    audio: {
-        echoCancellation: false,
-        noiseSupression: false,
-        autoGainControl: false,
-        googAutoGainControl: false
-    }
+    audio: true
 };
 
 /* var front = false;
@@ -475,6 +467,9 @@ function startVideo(created) {
     navigator.mediaDevices.getUserMedia(streamConstraints)
         .then(stream => {
             localStream = stream;
+            /* const clone = stream.clone();
+            const audioTracks = clone.getAudioTracks();
+            audioTracks.forEach(track => { track.stop() }); */
             localVideo.srcObject = localStream;
             localBox.addEventListener('click', e => switchToMain(localBox));
             if (created) {
@@ -588,7 +583,10 @@ function stopShare() {
 
 function replaceMedia(stream) {
     localStream = stream;
-    localVideo.srcObject = localStream;
+    const clone = stream.clone();
+    const audioTracks = clone.getAudioTracks();
+    audioTracks.forEach(track => { track.stop() });
+    localVideo.srcObject = clone;
     if (localVideo.classList.contains('videocall')) {
         localVideo.classList.remove('videocall');
     } else {
