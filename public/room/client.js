@@ -53,21 +53,17 @@ const iceServers = {
         { 'urls': 'stun:stun.ekiga.net' }
     ]
 }
-//https://hpbn.co/webrtc/
-var streamConstraints = {
-    video: {
-        frameRate: {
-            ideal: 60,
-            min: 10,
-        }
-    },
+//constraints
+const streamConstraints = {
+    video: true,
     audio: true
     //facingMode: { exact: "user" }//environment
 };
 
-var displayMediaOptions = {
+const displayMediaOptions = {
     video: {
-        cursor: "always"
+        cursor: "always",
+        logicalSurface: true
     },
     audio: true
 };
@@ -75,7 +71,7 @@ var displayMediaOptions = {
 /* var front = false;
 document.getElementById('flip-button').onclick = function() { front = !front; };
 
-var constraints = { video: { facingMode: (front? "user" : "environment") } }; */
+const streamConstraints = { video: { facingMode: (front? "user" : "environment") } }; */
 
 //connect to socket
 const socket = io();
@@ -583,10 +579,10 @@ function stopShare() {
 
 function replaceMedia(stream) {
     localStream = stream;
-    const clone = stream.clone();
+    /* const clone = stream.clone();
     const audioTracks = clone.getAudioTracks();
-    audioTracks.forEach(track => { track.stop() });
-    localVideo.srcObject = clone;
+    audioTracks.forEach(track => { track.stop() }); */
+    localVideo.srcObject = localStream;
     if (localVideo.classList.contains('videocall')) {
         localVideo.classList.remove('videocall');
     } else {
@@ -597,7 +593,7 @@ function replaceMedia(stream) {
         rtcPeerConnection[connections[i]].getSenders().map(sender => {
             stream.getTracks().forEach(track => {
                 if (track.kind == sender.track.kind) {
-                sender.replaceTrack(track);
+                    sender.replaceTrack(track);
                 }
             });       
         })
@@ -713,7 +709,6 @@ function receiveFile(event) {
 }
 
 function createFileItem(item) {
-    console.log('lsitive');
     let file = document.createElement('li');
     let link = document.createElement('a');
     link.setAttribute('href', item);
