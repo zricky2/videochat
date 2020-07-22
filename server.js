@@ -1,5 +1,3 @@
-//const fs = require('fs');
-//const path = require('path');
 const express = require('express');
 const app = express();
 const routes = require('./routes/index')
@@ -31,8 +29,8 @@ const io = require('socket.io')(server);
 io.on('connection', socket => {
     socket.on("checkroom", room => {
         //count the number of users in room
-        let myRoom = io.sockets.adapter.rooms[room] || { length: 0 };
-        let numClients = myRoom.length;
+        const myRoom = io.sockets.adapter.rooms[room] || { length: 0 };
+        const numClients = myRoom.length;
         if (numClients >= 5) {
             socket.emit('full', room);
         } else {

@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LIVCODE</title>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js"></script>
     <script defer src="client.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -28,7 +29,7 @@
             <div id="bottombar">
                 <button id="openchat" class="bottombutton">Chat</button>
                 <button id="openlivetext" class="bottombutton">Live Code</button>
-                <!-- <button id="capture" class="bottombutton">Capture</button> -->
+                <button id="openeditor" class="bottombutton">Editor</button> 
                 <button id="audio" class="bottombutton options">Mute</button>
                 <button id="video" class="bottombutton options">Stop Video</button>
                 <button id="share" class="bottombutton options">Share Screen</button>
@@ -37,8 +38,8 @@
         </div>
 
         <div class="features">
-            <div class="chatandfile">
-                <div id="chatbox" class="box">
+            <div class="chatandfile" class="box">
+                <div id="chatbox">
                     <div class="title">Chat
                         <button id="closechat" class="close">&times</button>
                     </div>
@@ -50,7 +51,7 @@
                     </div>
                 </div>
 
-                <div class="files" id="filesbox">
+                <div id="filesbox">
                     <div class="title">Files</div>
                     <div class="fileinput">
                         <label for="myfile">Select files to send:</label>
@@ -77,13 +78,39 @@
                 </div>
             </div>
 
-            <!-- <div class="capture">
-                <div class="title">Capture</div>
-                <div class="capturebody">
-                    <button>Take Photo</button>
-                    <canvas></canvas>
+            <div id="editbox" class="box">
+                <div class="title">Editor
+                    <button id = "settings">Settings</button>
+                    <button id = "closeeditor" class="close">&times</button>
                 </div>
-            </div> -->
+                <div id="editor"></div>
+                <div class="modal">Setting<br>
+                    <button id = "closesettings" class="close">&times</button>
+                    <label for="mode">Language:</label>
+                    <select name="mode" id="mode">           
+                        <option value="ace/mode/clojure">Clojure</option>
+                        <option value="ace/mode/css">CSS</option>
+                        <option value="ace/mode/c_cpp">C++</option>
+                        <option value="ace/mode/csharp">C#</option>
+                        <option value="ace/mode/html">HTML</option>
+                        <option value="ace/mode/java">Java</option>
+                        <option value="ace/mode/javascript" selected>JavaScript</option>
+                        <option value="ace/mode/php">PHP</option>
+                        <option value="ace/mode/python">Python</option>
+                        <option value="ace/mode/ruby">Ruby</option>
+                        <option value="ace/mode/typescript">TypeScript</option>
+                    </select>
+                    <label for="theme">Theme:</label>
+                    <select name="theme" id="theme">
+                        <option value="ace/theme/ambiance">Ambience</option>
+                        <option value="ace/theme/chaos">Chaos</option>
+                        <option value="ace/theme/cobalt">Cobalt</option>
+                        <option value="ace/theme/monokai" selected>Monokai</option>
+                        <option value="ace/theme/twilight">Twilight</option>
+                    </select>
+                    
+                </div>
+            </div>
 
         </div>
 

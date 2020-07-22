@@ -26,7 +26,7 @@ html, body {
 
 .users {
   width: 100%;
-  height: 90%;
+  height: 93%;
 }
 
 .bigbox {
@@ -56,16 +56,19 @@ html, body {
 
 .username {
   width: 100%;
-  height: 10%;
-  max-height: 10%;
+  height: 5%;
+  max-height: 5%;
   color: white;
   font-size: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .videosize {
   width: 100%;
   max-width: 100%;
-  max-height: 90%;
+  max-height: 95%;
 }
 
 video::-webkit-media-controls-panel {
@@ -92,7 +95,7 @@ video::-webkit-media-controls-panel {
 #bottombar {
   background-color: #333333;
   width: 100%;
-  height: 10%;
+  height: 7%;
   display: flex;
   justify-content: center;
 }
@@ -115,8 +118,7 @@ video::-webkit-media-controls-panel {
 
 .options {
   color: white;
-  font-size: small;
-  margin: auto;
+  margin: 0 auto 0 auto;
 }
 
 #leave {
@@ -124,8 +126,12 @@ video::-webkit-media-controls-panel {
   margin-left: auto;
 }
 
-.chatandfile {
+.box {
   display: none;
+}
+
+.chatandfile {
+  
   width: 100%;
   height: 100%;
 }
@@ -305,7 +311,6 @@ ul li:hover {
 
 
 #livetextbox {
-  display: none;
   width: 100%;
   height: 100%;
   max-width: 100%;
@@ -363,15 +368,30 @@ ul li:hover {
   color: white;
 }
 
-.capture {
-  display: none;
+#editbox {
+  background-color: gray;
   width: 100%;
   height: 100%;
 }
 
-.capture > .title {
+#editbox > .title {
   width: 100%;
   height: 10%;
 }
 
+#editor {
+  width: 100%;
+  height: 90%;
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  right: 0;
+  top: 0;
+  background-color: gray;
+  width: 20%;
+  height: 20%;
+  z-index: 5;
+}
 
