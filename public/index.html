@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LIVCODE</title>
-
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
@@ -14,7 +13,6 @@
         h3 {
             font-family: "Raleway", sans-serif
         }
-
         body,
         html {
             height: 100%;
@@ -44,6 +42,7 @@
             <div class="w3-right w3-hide-small">
                 <a href="#about" class="w3-bar-item w3-button">ABOUT</a>
                 <a href="#contact" class="w3-bar-item w3-button"><i class="fa fa-envelope"></i> CONTACT</a>
+                <a href="/auth/login" class="w3-bar-item w3-button"><i class="fa fa-sign-in"></i> Login</a>
             </div>
             <!-- Hide right-floated links on small screens and replace them with a menu icon -->
             <a href="javascript:void(0)" class="w3-bar-item w3-button w3-right w3-hide-large w3-hide-medium"
@@ -55,9 +54,10 @@
 
     <!-- Sidebar on small screens when clicking the menu icon -->
     <nav class="w3-sidebar w3-bar-block w3-black w3-card w3-animate-left w3-hide-medium w3-hide-large" style="display:none" id="mySidebar">
-        <a href="javascript:void(0)" onclick="closeBox()" class="w3-bar-item w3-button w3-large w3-padding-16">Close &times</a>
+        <a href="javascript:void(0)" onclick="closeBox()" class="w3-bar-item w3-button w3-large w3-padding-16"><i class="fa fa-close"></i></a>
         <a href="#about" onclick="closeBox()" class="w3-bar-item w3-button">ABOUT</a>
         <a href="#contact" onclick="closeBox()" class="w3-bar-item w3-button">CONTACT</a>
+        <a href="/auth/login" onclick="closeBox()" class="w3-bar-item w3-button">Login</a>
     </nav>
 
     <!-- Header with full-height image -->
@@ -101,6 +101,18 @@
         </div>
     </div>
 
+    <!-- Contact Section -->
+<div class="w3-container w3-light-grey" style="padding:128px 16px" id="contact">
+    <h3 class="w3-center">CONTACT</h3>
+    <p class="w3-center w3-large">Lets get in touch. Send us a message:</p>
+    <div style="margin-top:48px">
+      <p><i class="fa fa-map-marker fa-fw w3-xxlarge w3-margin-right"></i> Chapel Hill, US</p>
+<!--<p><i class="fa fa-phone fa-fw w3-xxlarge w3-margin-right"></i> Phone: +00 151515</p>-->      
+<p><i class="fa fa-envelope fa-fw w3-xxlarge w3-margin-right"> </i> Email: zricky@live.unc.com</p>
+      
+    </div>
+  </div>
+
     <!-- Footer -->
     <footer class="w3-center w3-black w3-padding-64">
         <a href="#home" class="w3-button w3-light-grey"><i class="fa fa-arrow-up w3-margin-right"></i>To the top</a>
@@ -115,7 +127,7 @@
     </footer>
 
     <script>
-        var mySidebar = document.getElementById("mySidebar");
+        const mySidebar = document.getElementById("mySidebar");
         function openBox() {
             if (mySidebar.style.display === 'block') {
                 mySidebar.style.display = 'none';

@@ -294,21 +294,14 @@ ul li:hover {
   position: absolute;
   background-color: #f1f1f1;
   max-width: 50%;
+  max-height: 30%;
+  overflow-y: scroll;
   box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
   z-index: 1;
 }
 
 /* Show the dropdown menu (use JS to add this class to the .dropdown-content container when the user clicks on the dropdown button) */
 .show {display:block;}
-
-
-.fileclose {
-  float: right;
-  cursor: pointer;
-}
-
-.fileclose:hover {background: #bbb;}
-
 
 #livetextbox {
   width: 100%;
@@ -366,6 +359,8 @@ ul li:hover {
   background-color: inherit;
   font-size: xx-large;
   color: white;
+  outline: none;
+  cursor: pointer;
 }
 
 #editbox {
@@ -377,6 +372,8 @@ ul li:hover {
 #editbox > .title {
   width: 100%;
   height: 10%;
+  text-align: left;
+  font-size: xx-large;
 }
 
 #editor {
@@ -395,3 +392,12 @@ ul li:hover {
   z-index: 5;
 }
 
+#closesettings {
+  float: right;
+  border-style: none;
+  background-color: inherit;
+  font-size: xx-large;
+  color: white;
+  outline: none;
+  cursor: pointer;
+}

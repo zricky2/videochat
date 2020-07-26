@@ -12,21 +12,11 @@ const messageInputBox = document.getElementById('message');
 const messagesBox = document.getElementsByClassName('messages')[0];
 const filePackage = document.getElementById("myFile");
 const uploadButton = document.getElementById("fileupload");
-const downloadAnchor = document.querySelector('a#download');
 const fileList = document.getElementById("fileList");
 const copyText = document.getElementById("copytext");
 const liveText = document.getElementById("livetextarea");
-const users = document.getElementsByClassName('users')[0];
 const chatAndFile = document.getElementsByClassName("chatandfile")[0];
-const openChat = document.getElementById("openchat");
-const closeChat = document.getElementById("closechat");
-const openFiles = document.getElementById("openfiles");
-const closeFiles = document.getElementById("closefiles");
 const liveTextBox = document.getElementById("livetextbox");
-const openLiveText = document.getElementById("openlivetext");
-const openEditor = document.getElementById("openeditor");
-const closeEditor = document.getElementById("closeeditor");
-const closeLiveText = document.getElementById("closelivetext");
 const main = document.getElementsByClassName('main')[0];
 const features = document.getElementsByClassName('features')[0];
 const filelist = document.getElementsByClassName('filelist')[0];
@@ -38,7 +28,8 @@ const settings = document.getElementById('settings');
 const closeSettings = document.getElementById('closesettings');
 const mode = document.getElementById('mode');
 const theme = document.getElementById('theme');
-
+const closeButtons = document.querySelectorAll('.close');
+const openButtons = document.querySelectorAll('.open');
 
 var roomNumber;
 var username;
@@ -46,7 +37,7 @@ var deviceOptions = [];
 var localStream;
 var audio;
 var video;
-var share;
+var share = false;
 var editor = ace.edit("editor");
 
 var recFileSize;
@@ -102,11 +93,9 @@ if (!('mediaDevices' in navigator && 'getUserMedia' in navigator.mediaDevices)) 
                 })
             });
             console.table(deviceOptions);
+            room();
         })
-        .catch(err => {
-            console.log(err.name + ": " + err.message);
-        });
-    room();
+        .catch(err => { console.log(err.name + ": " + err.message) });
 }
 
 function room() {
@@ -156,34 +145,10 @@ copyText.addEventListener('click', event => {
 //The oninput attribute fires when the value of an <input> or <textarea> element is changed.
 liveText.addEventListener("input", sendLiveText);
 
-openChat.addEventListener("click", (e) => {
-    openBox("chatandfile");
-});
-
-closeChat.addEventListener("click", () => {
-    main.classList.remove('mainadjusted');
-    features.classList.remove('featuresadjusted');
-    chatAndFile.style.display = "none";
-});
-
-openLiveText.addEventListener("click", (e) => {
-    openBox("text");
-});
-
-closeLiveText.addEventListener("click", () => {
-    main.classList.remove('mainadjusted');
-    features.classList.remove('featuresadjusted');
-    liveTextBox.style.display = "none";
-});
-
-closeEditor.addEventListener("click", () => {
-    main.classList.remove('mainadjusted');
-    features.classList.remove('featuresadjusted');
-    editorBox.style.display = "none";
-});
-
-openEditor.addEventListener("click", () => {
-    openBox("editor");
+openButtons.forEach(button => {
+    button.onclick = function (e) {
+        openBox(button.id);
+    }
 })
 
 settings.addEventListener("click", e => {
@@ -202,27 +167,38 @@ theme.addEventListener('change', () => {
     changeTheme(theme.value);
 })
 
+
 function openBox(box) {
-    main.classList.add('mainadjusted');
-    features.classList.add('featuresadjusted');
+    main.classList.toggle('mainadjusted');
+    features.classList.toggle('featuresadjusted');
     switch (box) {
-        case "chatandfile":
+        case "openchat":
             chatAndFile.style.display = "block";
             liveTextBox.style.display = "none";
             editorBox.style.display = "none";
             break;
-        case "text":
+        case "openlivetext":
             chatAndFile.style.display = "none";
             liveTextBox.style.display = "block";
             editorBox.style.display = "none";
             break;
-        case "editor":
+        case "openeditor":
             chatAndFile.style.display = "none";
             liveTextBox.style.display = "none";
             editorBox.style.display = "block";
             break;
     }
 }
+
+closeButtons.forEach(button => {
+    button.onclick = function (e) {
+        main.classList.toggle('mainadjusted');
+        features.classList.toggle('featuresadjusted');
+        chatAndFile.style.display = "none";
+        liveTextBox.style.display = "none";
+        editorBox.style.display = "none";
+    }
+})
 
 //when server emits created
 socket.on('created', () => {
@@ -254,12 +230,15 @@ function ready() {
 //when servers emits offer
 socket.on('offer', offer => {
     createRTC(offer.fromId, false);
-    addName(offer.fromId, offer.name)
+    addName(offer.fromId, offer.name);
     connections.push(offer.fromId);
+    if (offer.share) {
+        document.getElementById(offer.fromId).classList.remove('videocall');
+    }
     //stores the offer as remote description
     rtcPeerConnection[offer.fromId].setRemoteDescription(offer.sdp)
         .then(() => { console.log("setRemoteDescription()") })
-        .catch(error => { console.log(error) })
+        .catch(error => console.log(error))
     //adds the current local stream to the object
     localStream.getTracks().forEach(track => rtcPeerConnection[offer.fromId].addTrack(track, localStream));
     console.log("addTrack()");
@@ -278,11 +257,12 @@ socket.on('offer', offer => {
                 room: roomNumber,
                 toId: offer.fromId,
                 fromId: socket.id,
-                name: username
+                name: username,
+                share: share
             }
             socket.emit('answer', data)
         })
-        .catch(err => { console.log(err) });
+        .catch(err => console.log(err));
 })
 
 //when the server emits answer
@@ -292,6 +272,9 @@ socket.on('answer', answer => {
         .then(() => {
             console.log("setRemoteDescription()");
             addName(answer.fromId, answer.name);
+            if (answer.share) {
+                document.getElementById(answer.fromId).classList.remove('videocall');
+            }
         })
         .catch(err => { console.log(err) })
 })
@@ -309,12 +292,6 @@ socket.on('candidate', message => {
         .catch(err => { console.log("Error: Failure during addIceCandidate()") });
 });
 
-//for files
-socket.on('file', e => {
-    recFileName = e.name;
-    recFileSize = e.size;
-})
-
 //when a user leaves
 socket.on('leave', id => {
     removeRemote(id);
@@ -330,13 +307,13 @@ socket.on('leave', id => {
 
 socket.on('startshare', id => {
     document.getElementById(id).classList.remove('videocall');
-    document.getElementById(id).controls = true;
+    //document.getElementById(id).controls = true;
 })
 
 
 socket.on('stopshare', id => {
     document.getElementById(id).classList.add('videocall');
-    document.getElementById(id).controls = false;
+    //document.getElementById(id).controls = false;
 })
 
 function createRTC(id, isCaller) {
@@ -399,7 +376,8 @@ function negotiate(id) {
                 room: roomNumber,
                 toId: id,
                 fromId: socket.id,
-                name: username
+                name: username,
+                share: share
             }
             socket.emit('offer', data);
         })
@@ -541,7 +519,7 @@ function leaveRoom() {
         id: socket.id
     }
     socket.emit('leave', message);
-    window.location = "/enter";//reload the page
+    window.location = "/enter";
 }
 
 function stopMedia() {
@@ -677,12 +655,16 @@ function sendMessage() {
 
 function receiveMessage(event) {
     const message = event.data;
+    console.log(message);
     if (typeof message === "string") {
         let data = JSON.parse(message);
         if (data.type === "chat") {
             createRemoteMessage(data.data);
-        } else {
+        } else if (data.type === "livetext") {
             receiveLiveText(data.data);
+        } else if (data.type === "file") {
+            recFileSize = data.size;
+            recFileName = data.name;
         }
     } else if (message.constructor.name === "ArrayBuffer") {
         receiveFile(event);
@@ -717,17 +699,18 @@ function sendFile(event) {
         const file = filePackage.files[i];
         const fileReader = new FileReader();
         let offset = 0;
-        let data = {
+        const data = {
             name: file.name,
             size: file.size,
-            room: roomNumber
+            type: 'file'
         }
-        socket.emit('file', data);
-        fileReader.addEventListener('error', error => alert('Error reading file:', error));
+        const dataString = JSON.stringify(data);
+        fileReader.addEventListener('error', error => alert(`Error reading ${file.name}:`, error));
         fileReader.addEventListener('load', e => {
-            let num = connections.length;
+            const num = connections.length;
             for (let i = 0; i < num; i++) {
                 if (dataChannel[connections[i]].readyState === "open") {
+                    dataChannel[connections[i]].send(dataString);
                     dataChannel[connections[i]].send(e.target.result);
                     offset += e.target.result.byteLength;
                     if (offset < file.size) {
@@ -747,7 +730,6 @@ function sendFile(event) {
 }
 
 function receiveFile(event) {
-    console.log(recFileName);
     receiveBuffer.push(event.data);
     receivedSize += event.data.byteLength;
     if (receivedSize === recFileSize) {
@@ -755,10 +737,14 @@ function receiveFile(event) {
         createFileItem(URL.createObjectURL(received));
         receiveBuffer = [];
         receivedSize = 0;
+    } else if (receivedSize > recFileSize) {
+        receiveBuffer = [];
+        receivedSize = 0;
     }
 }
 
 function createFileItem(item) {
+    console.log('creating');
     let file = document.createElement('li');
     let link = document.createElement('a');
     link.setAttribute('href', item);
@@ -777,8 +763,11 @@ function createFileItem(item) {
 
 /* When the user clicks on the button,
 toggle between hiding and showing the dropdown content */
+const dropbtn = document.getElementsByClassName('dropbtn')[0];
+dropbtn.onclick = fileDropDown;
+const dropDown = document.getElementById("myDropdown");
 function fileDropDown() {
-    document.getElementById("myDropdown").classList.toggle("show");
+    dropDown.classList.toggle("show");
 }
 
 // Close the dropdown menu if the user clicks outside of it
@@ -816,7 +805,6 @@ function receiveLiveText(e) {
 
 /* function update() {
     var idoc = document.getElementById('result').contentWindow.document;
-
     idoc.open();
     idoc.write(editor.getValue());
     idoc.close();
@@ -829,7 +817,6 @@ function changeMode(mode) {
 function changeTheme(theme) {
     editor.setTheme(theme);
 }
-
 
 editor.setTheme(theme.value);
 editor.session.setMode(mode.value);
@@ -846,6 +833,328 @@ editor.focus();
     //update();
 }); */
 
+const themes = [{
+    text: "ambiance",
+    value: "ace/theme/ambiance"
+}, {
+    text: "chaos",
+    value: "ace/theme/chaos"
+}, {
+    text: "chrome",
+    value: "ace/theme/chrome"
+}, {
+    text: "clouds",
+    value: "ace/theme/clouds"
+}, {
+    text: "clouds_midnight",
+    value: "ace/theme/clouds_midnight"
+}, {
+    text: "cobalt",
+    value: "ace/theme/cobalt"
+}, {
+    text: "crimson_editor",
+    value: "ace/theme/crimson_editor"
+}, {
+    text: "dawn",
+    value: "ace/theme/dawn"
+}, {
+    text: "dreamweaver",
+    value: "ace/theme/dreamweaver"
+}, {
+    text: "eclipse",
+    value: "ace/theme/eclipse"
+}, {
+    text: "github",
+    value: "ace/theme/github"
+}, {
+    text: "idle_fingers",
+    value: "ace/theme/idle_fingers"
+}, {
+    text: "kr",
+    value: "ace/theme/kr"
+}, {
+    text: "merbivore",
+    value: "ace/theme/merbivore"
+}, {
+    text: "merbivore_soft",
+    value: "ace/theme/merbivore_soft"
+}, {
+    text: "monokai",
+    value: "ace/theme/monokai"
+}, {
+    text: "mono_industrial",
+    value: "ace/theme/mono_industrial"
+}, {
+    text: "pastel_on_dark",
+    value: "ace/theme/pastel_on_dark"
+}, {
+    text: "solarized_dark",
+    value: "ace/theme/solarized_dark"
+}, {
+    text: "solarized_light",
+    value: "ace/theme/solarized_light"
+}, {
+    text: "textmate",
+    value: "ace/theme/textmate"
+}, {
+    text: "tomorrow",
+    value: "ace/theme/tomorrow"
+}, {
+    text: "tomorrow_night",
+    value: "ace/theme/tomorrow_night"
+}, {
+    text: "tomorrow_night_blue",
+    value: "ace/theme/tomorrow_night_blue"
+}, {
+    text: "tomorrow_night_bright",
+    value: "ace/theme/tomorrow_night_bright"
+}, {
+    text: "tomorrow_night_eighties",
+    value: "ace/theme/tomorrow_night_eighties"
+}, {
+    text: "twilight",
+    value: "ace/theme/twilight"
+}, {
+    text: "vibrant_ink",
+    value: "ace/theme/vibrant_ink"
+}, {
+    text: "xcode",
+    value: "ace/theme/xcode"
+}
+];
+
+const modes = [{
+    text: "abap",
+    value: "ace/mode/abap"
+}, {
+    text: "asciidoc",
+    value: "ace/mode/asciidoc"
+}, {
+    text: "c9search",
+    value: "ace/mode/c9search"
+}, {
+    text: "clojure",
+    value: "ace/mode/clojure"
+}, {
+    text: "coffee",
+    value: "ace/mode/coffee"
+}, {
+    text: "coldfusion",
+    value: "ace/mode/coldfusion"
+}, {
+    text: "csharp",
+    value: "ace/mode/csharp"
+}, {
+    text: "css",
+    value: "ace/mode/css"
+}, {
+    text: "curly",
+    value: "ace/mode/curly"
+}, {
+    text: "c & c++",
+    value: "ace/mode/c_cpp"
+}, {
+    text: "dart",
+    value: "ace/mode/dart"
+}, {
+    text: "diff",
+    value: "ace/mode/diff"
+}, {
+    text: "django",
+    value: "ace/mode/django"
+}, {
+    text: "dot",
+    value: "ace/mode/dot"
+}, {
+    text: "ftl",
+    value: "ace/mode/ftl"
+}, {
+    text: "glsl",
+    value: "ace/mode/glsl"
+}, {
+    text: "golang",
+    value: "ace/mode/golang"
+}, {
+    text: "groovy",
+    value: "ace/mode/groovy"
+}, {
+    text: "haml",
+    value: "ace/mode/haml"
+}, {
+    text: "haxe",
+    value: "ace/mode/haxe"
+}, {
+    text: "html",
+    value: "ace/mode/html"
+}, {
+    text: "jade",
+    value: "ace/mode/jade"
+}, {
+    text: "java",
+    value: "ace/mode/java"
+}, {
+    text: "javascript",
+    value: "ace/mode/javascript"
+}, {
+    text: "json",
+    value: "ace/mode/json"
+}, {
+    text: "jsp",
+    value: "ace/mode/jsp"
+}, {
+    text: "jsx",
+    value: "ace/mode/jsx"
+}, {
+    text: "latex",
+    value: "ace/mode/latex"
+}, {
+    text: "less",
+    value: "ace/mode/less"
+}, {
+    text: "liquid",
+    value: "ace/mode/liquid"
+}, {
+    text: "lisp",
+    value: "ace/mode/lisp"
+}, {
+    text: "livescript",
+    value: "ace/mode/livescript"
+}, {
+    text: "logiql",
+    value: "ace/mode/logiql"
+}, {
+    text: "lsl",
+    value: "ace/mode/lsl"
+}, {
+    text: "lua",
+    value: "ace/mode/lua"
+}, {
+    text: "luapage",
+    value: "ace/mode/luapage"
+}, {
+    text: "lucene",
+    value: "ace/mode/lucene"
+}, {
+    text: "makefile",
+    value: "ace/mode/makefile"
+}, {
+    text: "markdown",
+    value: "ace/mode/markdown"
+}, {
+    text: "objectivec",
+    value: "ace/mode/objectivec"
+}, {
+    text: "ocaml",
+    value: "ace/mode/ocaml"
+}, {
+    text: "pascal",
+    value: "ace/mode/pascal"
+}, {
+    text: "perl",
+    value: "ace/mode/perl"
+}, {
+    text: "pgsql",
+    value: "ace/mode/pgsql"
+}, {
+    text: "php",
+    value: "ace/mode/php"
+}, {
+    text: "powershell",
+    value: "ace/mode/powershell"
+}, {
+    text: "python",
+    value: "ace/mode/python"
+}, {
+    text: "r",
+    value: "ace/mode/r"
+}, {
+    text: "rdoc",
+    value: "ace/mode/rdoc"
+}, {
+    text: "rhtml",
+    value: "ace/mode/rhtml"
+}, {
+    text: "ruby",
+    value: "ace/mode/ruby"
+}, {
+    text: "sass",
+    value: "ace/mode/sass"
+}, {
+    text: "scad",
+    value: "ace/mode/scad"
+}, {
+    text: "scala",
+    value: "ace/mode/scala"
+}, {
+    text: "scheme",
+    value: "ace/mode/scheme"
+}, {
+    text: "scss",
+    value: "ace/mode/scss"
+}, {
+    text: "sh",
+    value: "ace/mode/sh"
+}, {
+    text: "sql",
+    value: "ace/mode/sql"
+}, {
+    text: "stylus",
+    value: "ace/mode/stylus"
+}, {
+    text: "svg",
+    value: "ace/mode/svg"
+}, {
+    text: "tcl",
+    value: "ace/mode/tcl"
+}, {
+    text: "tex",
+    value: "ace/mode/tex"
+}, {
+    text: "text",
+    value: "ace/mode/text"
+}, {
+    text: "textile",
+    value: "ace/mode/textile"
+}, {
+    text: "tmsnippet",
+    value: "ace/mode/tmsnippet"
+}, {
+    text: "tm_snippet",
+    value: "ace/mode/tm_snippet"
+}, {
+    text: "toml",
+    value: "ace/mode/toml"
+}, {
+    text: "typescript",
+    value: "ace/mode/typescript"
+}, {
+    text: "vbscript",
+    value: "ace/mode/vbscript"
+}, {
+    text: "xml",
+    value: "ace/mode/xml"
+}, {
+    text: "xquery",
+    value: "ace/mode/xquery"
+}, {
+    text: "yaml",
+    value: "ace/mode/yaml"
+}
+]
+
+themes.forEach(item => {
+    const option = document.createElement("option");
+    option.value = item.value;
+    option.text = item.text;
+    theme.add(option);
+})
+
+modes.forEach(item => {
+    const option = document.createElement("option");
+    option.value = item.value
+    option.text = item.text
+    mode.add(option);
+})
 
 
 

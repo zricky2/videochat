@@ -1,20 +1,36 @@
 const express = require('express');
 const app = express();
-const routes = require('./routes/index')
+const indexRouter = require('./routes/index');
+const authRouter = require('./routes/auth');
+const enterRouter = require('./routes/enter');
+const passportSetup = require('./config/passport-setup');
+const mongoose = require('mongoose');
+const cookieSession = require('cookie-session');
+const passport = require('passport');
+require('dotenv').config();
+
+async function connect() {
+try {
+    await mongoose.connect(process.env.DB_CONN, { useUnifiedTopology: true, useNewUrlParser: true});
+} catch {error => console.log(error)};
+}
+
+connect();
+app.use(cookieSession({
+    maxAge: 24 * 60 * 60 * 1000, //a day long
+    keys: [process.env.CookieKey]
+}))
+app.use(passport.initialize());
+app.use(passport.session());
+
 
 app.use(express.static('public'));
-//__dirname : It will resolve to your project folder.
-app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/public/index.html')
-})
 
-app.get('/room', (req, res) => {
-    res.sendFile(__dirname + '/public/room/room.html');
-})
+app.use('/', indexRouter);
 
-app.get('/enter', (req, res) => {
-    res.sendFile(__dirname + '/public/enter/enter.html');
-})
+app.use('/auth', authRouter);
+
+app.use('/enter', enterRouter);
 
 const server = app.listen(process.env.PORT || 3000, listen);
 
@@ -80,11 +96,6 @@ io.on('connection', socket => {
         console.log("answer");
         //socket.to(event.room).emit('answer', event.sdp);
         socket.broadcast.to(event.toId).emit('answer', event);
-    })
-
-    //send file's info
-    socket.on('file', event => {
-        socket.to(event.room).emit('file', event);
     })
     
     socket.on('leave', message => {
