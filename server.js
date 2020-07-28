@@ -29,10 +29,11 @@ app.use(passport.session());
 const options = {
     index: false
 }
+app.use(express.static('public'));
 
 app.use('/', indexRouter);
 //looks for the index so put after the routing
-app.use(express.static('public'));
+
 
 app.use('/auth', authRouter);
 

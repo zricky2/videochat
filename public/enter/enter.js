@@ -1,3 +1,4 @@
+document.cookie = 'cross-site-cookie=bar; SameSite=None; Secure';
 const selectRoom = document.getElementById('selectroom');
 const selectName = document.getElementById('selectname');
 const inputRoomNumber = document.getElementById('roomNumber');

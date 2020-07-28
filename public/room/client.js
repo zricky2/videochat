@@ -1,5 +1,4 @@
 document.cookie = 'cross-site-cookie=bar; SameSite=None; Secure';
-
 const localVideo = document.querySelector("#localVideo");
 const localBox = document.getElementsByClassName('local')[0];
 const audioButton = document.querySelector('#audio');

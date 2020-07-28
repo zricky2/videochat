@@ -1,3 +1,4 @@
+document.cookie = 'cross-site-cookie=bar; SameSite=None; Secure';
 const mySidebar = document.getElementById("mySidebar");
 function openBox() {
     if (mySidebar.style.display === 'block') {
