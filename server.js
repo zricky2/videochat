@@ -3,6 +3,7 @@ const app = express();
 const indexRouter = require('./routes/index');
 const authRouter = require('./routes/auth');
 const enterRouter = require('./routes/enter');
+const roomRouter = require('./routes/room');
 const passportSetup = require('./config/passport-setup');
 const mongoose = require('mongoose');
 const cookieSession = require('cookie-session');
@@ -12,25 +13,32 @@ require('dotenv').config();
 async function connect() {
 try {
     await mongoose.connect(process.env.DB_CONN, { useUnifiedTopology: true, useNewUrlParser: true});
-} catch {error => console.log(error)};
+} catch {error => console.log(error)}
 }
 
 connect();
+
 app.use(cookieSession({
     maxAge: 24 * 60 * 60 * 1000, //a day long
     keys: [process.env.CookieKey]
 }))
+//initialize passport
 app.use(passport.initialize());
 app.use(passport.session());
 
-
-app.use(express.static('public'));
+const options = {
+    index: false
+}
 
 app.use('/', indexRouter);
+//looks for the index so put after the routing
+app.use(express.static('public'));
 
 app.use('/auth', authRouter);
 
 app.use('/enter', enterRouter);
+
+app.use('/room', roomRouter);
 
 const server = app.listen(process.env.PORT || 3000, listen);
 

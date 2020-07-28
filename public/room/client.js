@@ -214,6 +214,7 @@ socket.on('joined', (id) => {
 
 socket.on('full', () => {
     alert("This room is full. Type another room number! Max of 5 people");
+    window.location = "/enter";
 })
 
 function ready() {

@@ -25,7 +25,7 @@ router.get('/',authCheck, (req, res) => {
 })
 
 router.get('/u', authCheckU, (req, res) => {
-    res.sendFile(process.cwd() + '/public/enter/enter.html');
+    res.sendFile(process.cwd() + '/public/enter/enteru.html');
 })
 
 module.exports = router;
