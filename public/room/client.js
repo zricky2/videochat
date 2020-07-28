@@ -1,4 +1,3 @@
-document.cookie = 'same-site-cookie=foo; SameSite=Lax';
 document.cookie = 'cross-site-cookie=bar; SameSite=None; Secure';
 
 const localVideo = document.querySelector("#localVideo");
@@ -38,7 +37,7 @@ var localStream;
 var audio;
 var video;
 var share = false;
-var editor = ace.edit("editor");
+const editor = ace.edit("editor");
 
 var recFileSize;
 var recFileName;
@@ -655,7 +654,6 @@ function sendMessage() {
 
 function receiveMessage(event) {
     const message = event.data;
-    console.log(message);
     if (typeof message === "string") {
         let data = JSON.parse(message);
         if (data.type === "chat") {
@@ -663,6 +661,7 @@ function receiveMessage(event) {
         } else if (data.type === "livetext") {
             receiveLiveText(data.data);
         } else if (data.type === "file") {
+            console.log(recFileSize)
             recFileSize = data.size;
             recFileName = data.name;
         }
@@ -693,37 +692,36 @@ function uploadEnable() {
     }
 }
 //file
-function sendFile(event) {
-    const chunkSize = 16384;
-    for (let i = 0; i < filePackage.files.length; i++) {
+function sendFile(file) {
+    const chunkSize = 16000;//file divided into chunksize 16kb
+    const fileLength = filePackage.files.length;
+    for (let i = 0; i < fileLength; i++) {
         const file = filePackage.files[i];
         const fileReader = new FileReader();
         let offset = 0;
-        const data = {
+        const dataString = JSON.stringify({
+            type: 'file',
             name: file.name,
-            size: file.size,
-            type: 'file'
-        }
-        const dataString = JSON.stringify(data);
-        fileReader.addEventListener('error', error => alert(`Error reading ${file.name}:`, error));
-        fileReader.addEventListener('load', e => {
+            size: file.size
+        });
+        fileReader.addEventListener('error', err => alert(`Error reading ${file.name}:`, error));
+        fileReader.addEventListener('load', e => {//this is async so it is messy
             const num = connections.length;
-            for (let i = 0; i < num; i++) {
-                if (dataChannel[connections[i]].readyState === "open") {
-                    dataChannel[connections[i]].send(dataString);
-                    dataChannel[connections[i]].send(e.target.result);
-                    offset += e.target.result.byteLength;
-                    if (offset < file.size) {
-                        readSlice(offset);
-                    }
+            for (let x = 0; x < num; x++) {
+                if (dataChannel[connections[x]].readyState === "open") {
+                    dataChannel[connections[x]].send(dataString);
+                    dataChannel[connections[x]].send(e.target.result);// The file's text
                 }
             }
+            offset += e.target.result.byteLength;
+            if (offset < file.size) {//next chunk
+                const slice = file.slice(offset, offset + chunkSize);
+                fileReader.readAsArrayBuffer(slice);
+            }
         });
-        const readSlice = o => {
-            const slice = file.slice(offset, o + chunkSize);
-            fileReader.readAsArrayBuffer(slice);
-        };
-        readSlice(0);
+        //sets the first chunk
+        const slice = file.slice(offset, offset + chunkSize);
+        fileReader.readAsArrayBuffer(slice);
     }
     filePackage.value = null;
     uploadButton.disabled = true;
@@ -744,7 +742,6 @@ function receiveFile(event) {
 }
 
 function createFileItem(item) {
-    console.log('creating');
     let file = document.createElement('li');
     let link = document.createElement('a');
     link.setAttribute('href', item);

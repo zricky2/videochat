@@ -15,15 +15,16 @@
     <div id="room">
         <div class="main">
             <div class="users">
+                <div class="smallbox">
+                    <!--small videos-->
+                </div>
                 <div class="bigbox">
                     <div class="local videobox">
                         <div class="username"></div>
                         <video class="videosize videocall" id="localVideo" autoplay playsinline muted></video>
                     </div>
                 </div>
-                <div class="smallbox">
-                    <!--small videos-->
-                </div>
+                
             </div>
 
             <div id="bottombar">
@@ -55,7 +56,7 @@
                     <div class="title">Files</div>
                     <div class="fileinput">
                         <label for="myfile">Select files to send:</label>
-                        <input type="file" id="myFile" required multiple size="50">
+                        <input type="file" id="myFile" required>
                         <button id="fileupload" disabled>Send</button>
                     </div>
                     <div class=fileList>
