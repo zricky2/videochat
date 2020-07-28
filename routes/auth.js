@@ -28,8 +28,7 @@ router.get('/login', authCheck, (req, res) => {
 })
 
 //auth with google sign in page with google passport does the work
-router.get('/google', passport.authenticate('google', { scope: ['profile']
-}))
+router.get('/google', passport.authenticate('google', { scope: ['profile']}))
 
 router.get('/google/callback', passport.authenticate('google', 
     { failureRedirect: '/auth/login' }), 
