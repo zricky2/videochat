@@ -26,11 +26,6 @@ app.use(cookieSession({
 app.use(passport.initialize());
 app.use(passport.session());
 
-const options = {
-    index: false
-}
-
-
 app.use('/', indexRouter);
 //looks for the index so put after the routing
 
