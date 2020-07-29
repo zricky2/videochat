@@ -31,5 +31,9 @@ router.get('/u', authCheckU, (req, res) => {
     res.sendFile(process.cwd() + '/public/main/index.html')
 })
 
+router.get('/privacy', (req, res) => {
+    res.sendFile(process.cwd() + '/public/main/privacy.html')
+})
+
 
 module.exports = router;

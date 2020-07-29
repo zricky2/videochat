@@ -8,11 +8,11 @@ const passportSetup = require('./config/passport-setup');
 const mongoose = require('mongoose');
 const cookieSession = require('cookie-session');
 const passport = require('passport');
-//require('dotenv').config({ silent: process.env.NODE_ENV === 'production' })
+require('dotenv').config({ silent: process.env.NODE_ENV === 'production' })
 
 async function connect() {
 try {
-    await mongoose.connect(process.env.DB_CONN, { useUnifiedTopology: true, useNewUrlParser: true});
+    await mongoose.connect("mongodb+srv://rickytheman24:rItsJsjbq10dGxFU@cluster0.0s5x9.mongodb.net/LivCode?retryWrites=true&w=majority", { useUnifiedTopology: true, useNewUrlParser: true});
 } catch {error => console.log(error)}
 }
 
@@ -20,7 +20,7 @@ connect();
 
 app.use(cookieSession({
     maxAge: 24 * 60 * 60 * 1000, //a day long
-    keys: [process.env.CookieKey]
+    keys: ["bevi63o874gfSHBone"]//[process.env.CookieKey]
 }))
 //initialize passport
 app.use(passport.initialize());
