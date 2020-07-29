@@ -2,9 +2,7 @@ const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth2').Strategy;
 const User = require('../models/db');
 
-if (process.env.NODE_ENV !== 'production') {
-    require('dotenv').config()
-}
+require('dotenv').config({ silent: process.env.NODE_ENV === 'production' })
 
 // Reference .env vars off of the process.env object
 
