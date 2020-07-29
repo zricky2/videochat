@@ -22,9 +22,9 @@ passport.deserializeUser((id, done) => {
 })
 https://accounts.google.com/signin/oauth/error?authError=Cg5pbnZhbGlkX2NsaWVudBIfVGhlIE9BdXRoIGNsaWVudCB3YXMgbm90IGZvdW5kLiCRAw%3D%3D&client_id=%22399708137397-r55ils7tj51h6d0s66dbrua0q7fmra68.apps.googleusercontent.com%22
 passport.use(new GoogleStrategy({
-    clientID: "399708137397-r55ils7tj51h6d0s66dbrua0q7fmra68.apps.googleusercontent.com",//process.env.GOOGLE_CLIENT_ID,
-    clientSecret: "ML4_fOOcUQg6S8bTgI8Rhbki",//process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: "/auth/google/callback",///auth/google/callback",
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL: "/auth/google/callback",
     proxy: true//// trust the proxy our request runs through so heroku callbacks to the correct url
   },
   function(token, tokenSecret, profile, done) {
