@@ -8,7 +8,7 @@ const passportSetup = require('./config/passport-setup');
 const mongoose = require('mongoose');
 const cookieSession = require('cookie-session');
 const passport = require('passport');
-require('dotenv').config({ silent: process.env.NODE_ENV === 'production' })
+//require('dotenv').config({ silent: process.env.NODE_ENV === 'production' })
 
 async function connect() {
 try {
