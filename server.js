@@ -119,6 +119,10 @@ io.on('connection', socket => {
         socket.to(roomNumber).emit('newoffer', socket.id);
     })
 
+    socket.on('mic', mic => {
+        socket.to(mic.roomNumber).emit('mic', mic);
+    })
+
     socket.on('disconnecting', e => {
         const rooms = Object.keys(socket.rooms);
         socket.to(rooms[0]).emit('leave', socket.id);

@@ -1,6 +1,6 @@
 document.cookie = 'cross-site-cookie=bar; SameSite=None; Secure';
 const localVideo = document.querySelector("#localVideo");
-const localBox = document.getElementsByClassName('local')[0];
+const localBox = document.getElementById('local');
 const audioButton = document.querySelector('#audio');
 const videoButton = document.querySelector('#video');
 const shareButton = document.querySelector('#share');
@@ -12,9 +12,9 @@ const filePackage = document.getElementById("myFile");
 const uploadButton = document.getElementById("fileupload");
 const fileList = document.getElementById("fileList");
 const copyText = document.getElementById("copytext");
-const liveText = document.getElementById("livetextarea");
+const liveText = document.getElementById("livetextarea");//
 const chatAndFile = document.getElementsByClassName("chatandfile")[0];
-const liveTextBox = document.getElementById("livetextbox");
+const liveTextBox = document.getElementById("livetextbox");//
 const main = document.getElementsByClassName('main')[0];
 const features = document.getElementsByClassName('features')[0];
 const filelist = document.getElementsByClassName('filelist')[0];
@@ -29,14 +29,16 @@ const theme = document.getElementById('theme');
 const closeButtons = document.querySelectorAll('.close');
 const openButtons = document.querySelectorAll('.open');
 
+
 var roomNumber;
 var username;
 var deviceOptions = [];
 var localStream;
 var audio;
 var video;
-var share = false;
+var share;
 const editor = ace.edit("editor");
+var applyChanges;
 
 var recFileSize;
 var recFileName;
@@ -141,7 +143,7 @@ copyText.addEventListener('click', event => {
     document.execCommand("copy");
 })
 //The oninput attribute fires when the value of an <input> or <textarea> element is changed.
-liveText.addEventListener("input", sendLiveText);
+//liveText.addEventListener("input", sendLiveText);
 
 openButtons.forEach(button => {
     button.onclick = function (e) {
@@ -158,7 +160,8 @@ closeSettings.addEventListener('click', () => {
 })
 
 mode.addEventListener('change', () => {
-    changeMode(mode.value);
+    const text = mode.options[mode.selectedIndex].text;
+    changeMode(mode.value, text);
 })
 
 theme.addEventListener('change', () => {
@@ -167,22 +170,17 @@ theme.addEventListener('change', () => {
 
 
 function openBox(box) {
-    main.classList.toggle('mainadjusted');
-    features.classList.toggle('featuresadjusted');
+    main.classList.add('mainadjusted');
+    features.classList.add('featuresadjusted');
     switch (box) {
         case "openchat":
             chatAndFile.style.display = "block";
-            liveTextBox.style.display = "none";
-            editorBox.style.display = "none";
-            break;
-        case "openlivetext":
-            chatAndFile.style.display = "none";
-            liveTextBox.style.display = "block";
+            //liveTextBox.style.display = "none";
             editorBox.style.display = "none";
             break;
         case "openeditor":
             chatAndFile.style.display = "none";
-            liveTextBox.style.display = "none";
+            //liveTextBox.style.display = "none";
             editorBox.style.display = "block";
             break;
     }
@@ -190,8 +188,8 @@ function openBox(box) {
 
 closeButtons.forEach(button => {
     button.onclick = function (e) {
-        main.classList.toggle('mainadjusted');
-        features.classList.toggle('featuresadjusted');
+        main.classList.remove('mainadjusted');
+        features.classList.remove('featuresadjusted');
         chatAndFile.style.display = "none";
         liveTextBox.style.display = "none";
         editorBox.style.display = "none";
@@ -257,7 +255,8 @@ socket.on('offer', offer => {
                 toId: offer.fromId,
                 fromId: socket.id,
                 name: username,
-                share: share
+                share: share,
+                isAudioOn: audio
             }
             socket.emit('answer', data)
         })
@@ -274,6 +273,9 @@ socket.on('answer', answer => {
             if (answer.share) {
                 document.getElementById(answer.fromId).classList.remove('videocall');
             }
+            if (!answer.isAudioOn) {
+                toggleMicIcon(answer.fromId, answer.isAudioOn);
+            }
         })
         .catch(err => { console.log(err) })
 })
@@ -287,7 +289,9 @@ socket.on('candidate', message => {
     });
     //stores candidate
     rtcPeerConnection[message.fromId].addIceCandidate(candidate)
-        .then(() => { console.log("added IceCandidate successfully") })
+        .then(() => {
+            console.log("added IceCandidate successfully");
+        })
         .catch(err => { console.log("Error: Failure during addIceCandidate()") });
 });
 
@@ -314,6 +318,11 @@ socket.on('stopshare', id => {
     document.getElementById(id).classList.add('videocall');
     //document.getElementById(id).controls = false;
 })
+
+socket.on('mic', e => {
+    toggleMicIcon(e.id, e.isOn);
+})
+
 
 function createRTC(id, isCaller) {
     //creates a RTCPeerConnection
@@ -394,7 +403,7 @@ function createChannel(id) {
         console.log("channel is closed");
         sendButton.disabled = true;
     });
-    dataChannel[id].addEventListener('message', receiveMessage);
+    dataChannel[id].addEventListener('message', receiveMessageType);
 }
 
 function receiveChannel(event, id) {
@@ -408,24 +417,29 @@ function receiveChannel(event, id) {
         console.log("channel is closed");
         sendButton.disabled = true;
     });
-    dataChannel[id].addEventListener('message', receiveMessage);
+    dataChannel[id].addEventListener('message', receiveMessageType);
 }
 
 
 function createRemote(id) {
-    let videoBox = document.createElement('div');
-    videoBox.classList.add('videobox');
+    const videoBox = document.createElement('div');
+    videoBox.classList.add('videoboxadjusted');
     videoBox.id = `${id}box`;
-    let name = document.createElement("div");
+    const name = document.createElement("div");
     name.classList.add('username');
-    let remoteVideo = document.createElement("video");
+    const icon = document.createElement('i');
+    icon.classList.add('fa', 'fa-microphone');
+    name.appendChild(icon);
+    const remoteVideo = document.createElement("video");
     remoteVideo.id = id;
-    remoteVideo.classList.add('videosize');
-    remoteVideo.classList.add('videocall');
+    remoteVideo.classList.add('videosize', 'videocall');
     remoteVideo.autoplay = true;
     remoteVideo.playsInline = true;
-    videoBox.appendChild(name);
-    videoBox.appendChild(remoteVideo);
+    const trueSize = document.createElement('div');
+    trueSize.classList.add('truesize');
+    trueSize.appendChild(name);
+    trueSize.appendChild(remoteVideo);
+    videoBox.appendChild(trueSize);
     videoBox.addEventListener('click', e => switchToMain(videoBox));
     smallBox.appendChild(videoBox);
 }
@@ -436,26 +450,29 @@ function removeRemote(id) {
         let remote = document.getElementById(`${id}box`);
         remote.remove();
         remote = null;
-        remoteStream = null;
     }
 }
 
-function switchToMain(video) {
-    if (!bigBox.contains(video)) {
-        video.remove();
+function switchToMain(user) {
+    if (!bigBox.contains(user)) {
+        user.remove();
         if (bigBox.hasChildNodes) {
             const current = bigBox.firstElementChild;
             current.remove();
-            smallBox.insertAdjacentElement('beforeend', current);
+            current.classList.remove('videobox');
+            current.classList.add('videoboxadjusted');
+            smallBox.appendChild(current);
         }
-        bigBox.insertAdjacentElement('afterbegin', video);
+        user.classList.remove('videoboxadjusted');
+        user.classList.add('videobox');
+        bigBox.insertAdjacentElement('afterbegin', user);
     }
 }
 
 function addName(id, name) {
     const box = document.getElementById(id + 'box');
-    let head = box.childNodes[0];
-    head.innerHTML = name;
+    const user = box.firstElementChild.firstElementChild;
+    user.innerHTML += ' ' + name;
 }
 
 function startVideo(created) {
@@ -468,7 +485,7 @@ function startVideo(created) {
                 ready();
             }
             [audio, video] = [true, true];
-            localBox.firstElementChild.innerHTML = username;
+            localBox.firstElementChild.firstElementChild.innerHTML += ' ' + username;
         }).catch(err => { console.log("Error in starting video: " + err) })
 }
 
@@ -479,7 +496,11 @@ function audioOn() {
         t.enabled = true;
     });
     audio = true;
-    audioButton.innerHTML = "Mute";
+    audioButton.firstElementChild.classList.remove('fa-microphone-slash', 'red');
+    audioButton.firstElementChild.classList.add('fa-microphone');
+    audioButton.innerHTML = audioButton.innerHTML.replace("Unmute", "Mute");
+    socket.emit("mic", { roomNumber: roomNumber, id: socket.id, isOn: audio });
+
 }
 
 function audioOff() {
@@ -489,7 +510,23 @@ function audioOff() {
         t.enabled = false;
     });
     audio = false;
-    audioButton.innerHTML = "Unmute";
+    audioButton.firstElementChild.classList.remove('fa-microphone');
+    audioButton.firstElementChild.classList.add('fa-microphone-slash', 'red');
+    audioButton.innerHTML = audioButton.innerHTML.replace("Mute", "Unmute");
+    socket.emit("mic", { roomNumber: roomNumber, id: socket.id, isOn: audio });
+
+}
+
+function toggleMicIcon(id, isOn) {
+    const box = document.getElementById(id + 'box');
+    const mic = box.firstElementChild.firstElementChild;
+    if (isOn) {
+        mic.firstElementChild.classList.remove('fa-microphone-slash', 'red');
+        mic.firstElementChild.classList.add('fa-microphone');
+    } else {
+        mic.firstElementChild.classList.remove('fa-microphone');
+        mic.firstElementChild.classList.add('fa-microphone-slash', 'red');
+    }
 }
 
 function videoOn() {
@@ -499,7 +536,8 @@ function videoOn() {
         t.enabled = true;
     });
     video = true;
-    videoButton.innerHTML = "Stop Video";
+    videoButton.innerHTML = videoButton.innerHTML.replace("Start Video", "Stop Video");
+    videoButton.firstElementChild.classList.remove('red');
 }
 
 function videoOff() {
@@ -509,7 +547,8 @@ function videoOff() {
         t.enabled = false;
     });
     video = false;
-    videoButton.innerHTML = "Start Video";
+    videoButton.innerHTML = videoButton.innerHTML.replace("Stop Video", "Start Video");
+    videoButton.firstElementChild.classList.add('red');
 }
 
 function leaveRoom() {
@@ -620,13 +659,15 @@ function replaceMedia(stream, isShared) {
 function resetButtons(isShared) {
     if (isShared) {
         share = true;
-        shareButton.innerHTML = "Stop Sharing";
+        shareButton.firstElementChild.classList.add('blue');
+        shareButton.innerHTML = shareButton.innerHTML.replace("Share Screen", "Stop Share");
         audioOn();
         videoOn();
         videoButton.disabled = true;
     } else {
         share = false;
-        shareButton.innerHTML = "Start Sharing";
+        shareButton.firstElementChild.classList.remove('blue');
+        shareButton.innerHTML = shareButton.innerHTML.replace("Stop Share", "Share Screen");        
         audioOn();
         videoOn();
         videoButton.disabled = false;
@@ -652,16 +693,16 @@ function sendMessage() {
     }
 }
 
-function receiveMessage(event) {
+function receiveMessageType(event) {
     const message = event.data;
     if (typeof message === "string") {
         let data = JSON.parse(message);
         if (data.type === "chat") {
             createRemoteMessage(data.data);
-        } else if (data.type === "livetext") {
-            receiveLiveText(data.data);
+        } else if (data.type === "editor") {
+            receiveCode(data.data);
+            //receiveLiveText(data.data);
         } else if (data.type === "file") {
-            console.log(recFileSize)
             recFileSize = data.size;
             recFileName = data.name;
         }
@@ -781,25 +822,6 @@ window.onclick = function (event) {
     }
 }
 
-//livetext
-function sendLiveText(event) {
-    let text = liveText.value;
-    let data = {
-        type: 'livetext',
-        data: text
-    }
-    let num = connections.length
-    for (let i = 0; i < num; i++) {
-        if (dataChannel[connections[i]].readyState === "open") {
-            dataChannel[connections[i]].send(JSON.stringify(data));
-        }
-    }
-}
-
-function receiveLiveText(e) {
-    liveText.value = e;
-}
-
 /* function update() {
     var idoc = document.getElementById('result').contentWindow.document;
     idoc.open();
@@ -807,24 +829,14 @@ function receiveLiveText(e) {
     idoc.close();
 } */
 
-function changeMode(mode) {
-    editor.session.setMode(mode);
+function changeMode(value, text) {
+    editor.session.setMode(value);
+    editor.session.setValue(modeExample[text], 1);
 }
 
-function changeTheme(theme) {
-    editor.setTheme(theme);
+function changeTheme(value) {
+    editor.setTheme(value);
 }
-
-editor.setTheme(theme.value);
-editor.session.setMode(mode.value);
-editor.focus();
-/* editor.setValue(`<!DOCTYPE html>
-<html>
-<head>
-</head>
-<body>
-</body>
-</html>`, 1); */ //1 = moves cursor to end
 
 /* editor.getSession().on('change', function () {
     //update();
@@ -921,223 +933,157 @@ const themes = [{
 ];
 
 const modes = [{
-    text: "abap",
-    value: "ace/mode/abap"
-}, {
-    text: "asciidoc",
-    value: "ace/mode/asciidoc"
-}, {
-    text: "c9search",
-    value: "ace/mode/c9search"
-}, {
-    text: "clojure",
+    text: "Clojure",
     value: "ace/mode/clojure"
 }, {
-    text: "coffee",
-    value: "ace/mode/coffee"
-}, {
-    text: "coldfusion",
-    value: "ace/mode/coldfusion"
-}, {
-    text: "csharp",
+    text: "Csharp",
     value: "ace/mode/csharp"
 }, {
-    text: "css",
+    text: "CSS",
     value: "ace/mode/css"
 }, {
-    text: "curly",
-    value: "ace/mode/curly"
-}, {
-    text: "c & c++",
+    text: "CandCpp",
     value: "ace/mode/c_cpp"
 }, {
-    text: "dart",
-    value: "ace/mode/dart"
-}, {
-    text: "diff",
-    value: "ace/mode/diff"
-}, {
-    text: "django",
+    text: "Django",
     value: "ace/mode/django"
 }, {
-    text: "dot",
-    value: "ace/mode/dot"
-}, {
-    text: "ftl",
-    value: "ace/mode/ftl"
-}, {
-    text: "glsl",
-    value: "ace/mode/glsl"
-}, {
-    text: "golang",
+    text: "Go",
     value: "ace/mode/golang"
 }, {
-    text: "groovy",
-    value: "ace/mode/groovy"
+    text: "Haskell",
+    value: "ace/mode/haskell"
 }, {
-    text: "haml",
-    value: "ace/mode/haml"
-}, {
-    text: "haxe",
-    value: "ace/mode/haxe"
-}, {
-    text: "html",
+    text: "HTML",
     value: "ace/mode/html"
 }, {
-    text: "jade",
-    value: "ace/mode/jade"
-}, {
-    text: "java",
+    text: "Java",
     value: "ace/mode/java"
 }, {
-    text: "javascript",
+    text: "JavaScript",
     value: "ace/mode/javascript"
 }, {
-    text: "json",
+    text: "JSON",
     value: "ace/mode/json"
 }, {
-    text: "jsp",
-    value: "ace/mode/jsp"
-}, {
-    text: "jsx",
+    text: "JSX",
     value: "ace/mode/jsx"
 }, {
-    text: "latex",
-    value: "ace/mode/latex"
+    text: "Kotlin",
+    value: "ace/mode/kotlin"
 }, {
-    text: "less",
-    value: "ace/mode/less"
-}, {
-    text: "liquid",
-    value: "ace/mode/liquid"
-}, {
-    text: "lisp",
-    value: "ace/mode/lisp"
-}, {
-    text: "livescript",
-    value: "ace/mode/livescript"
-}, {
-    text: "logiql",
-    value: "ace/mode/logiql"
-}, {
-    text: "lsl",
-    value: "ace/mode/lsl"
-}, {
-    text: "lua",
-    value: "ace/mode/lua"
-}, {
-    text: "luapage",
-    value: "ace/mode/luapage"
-}, {
-    text: "lucene",
-    value: "ace/mode/lucene"
-}, {
-    text: "makefile",
-    value: "ace/mode/makefile"
-}, {
-    text: "markdown",
-    value: "ace/mode/markdown"
-}, {
-    text: "objectivec",
-    value: "ace/mode/objectivec"
-}, {
-    text: "ocaml",
-    value: "ace/mode/ocaml"
-}, {
-    text: "pascal",
-    value: "ace/mode/pascal"
-}, {
-    text: "perl",
-    value: "ace/mode/perl"
-}, {
-    text: "pgsql",
-    value: "ace/mode/pgsql"
-}, {
-    text: "php",
+    text: "PHP",
     value: "ace/mode/php"
 }, {
-    text: "powershell",
-    value: "ace/mode/powershell"
+    text: "PlainText",
+    value: "ace/mode/plain_text"
 }, {
-    text: "python",
+    text: "Python",
     value: "ace/mode/python"
 }, {
-    text: "r",
-    value: "ace/mode/r"
-}, {
-    text: "rdoc",
-    value: "ace/mode/rdoc"
-}, {
-    text: "rhtml",
-    value: "ace/mode/rhtml"
-}, {
-    text: "ruby",
+    text: "Ruby",
     value: "ace/mode/ruby"
 }, {
-    text: "sass",
-    value: "ace/mode/sass"
+    text: "Rust",
+    value: "ace/mode/rust"
 }, {
-    text: "scad",
-    value: "ace/mode/scad"
-}, {
-    text: "scala",
+    text: "Scala",
     value: "ace/mode/scala"
 }, {
-    text: "scheme",
-    value: "ace/mode/scheme"
-}, {
-    text: "scss",
-    value: "ace/mode/scss"
-}, {
-    text: "sh",
-    value: "ace/mode/sh"
-}, {
-    text: "sql",
+    text: "SQL",
     value: "ace/mode/sql"
 }, {
-    text: "stylus",
-    value: "ace/mode/stylus"
+    text: "Swift",
+    value: "ace/mode/swift"
 }, {
-    text: "svg",
-    value: "ace/mode/svg"
-}, {
-    text: "tcl",
-    value: "ace/mode/tcl"
-}, {
-    text: "tex",
-    value: "ace/mode/tex"
-}, {
-    text: "text",
-    value: "ace/mode/text"
-}, {
-    text: "textile",
-    value: "ace/mode/textile"
-}, {
-    text: "tmsnippet",
-    value: "ace/mode/tmsnippet"
-}, {
-    text: "tm_snippet",
-    value: "ace/mode/tm_snippet"
-}, {
-    text: "toml",
-    value: "ace/mode/toml"
-}, {
-    text: "typescript",
+    text: "TypeScript",
     value: "ace/mode/typescript"
-}, {
-    text: "vbscript",
-    value: "ace/mode/vbscript"
-}, {
-    text: "xml",
-    value: "ace/mode/xml"
-}, {
-    text: "xquery",
-    value: "ace/mode/xquery"
-}, {
-    text: "yaml",
-    value: "ace/mode/yaml"
 }
 ]
+
+const modeExample = {
+    Clojure: `(println "You are writing in Clojure")`,
+    Csharp: 
+    `public class Hello{
+        public static void Main(){
+            // Your code here!
+            
+            System.Console.WriteLine("Hello C#");
+        }
+    }`,
+    CSS: 
+    `/* CSS */
+    p {
+      color: red;
+    }`
+    , CandCpp: `#include <stdio.h>
+    int main(void){
+        // Your code here!
+        
+    }`,
+    Django: `{# Django #}hello world`, 
+    Go: 
+    `package main
+    import "fmt"
+    func main(){
+        // Your code here!
+        
+        fmt.Println("Go")
+    }`, 
+    Haskell: 
+    `main = putStrLn "Haskell"`, 
+    HTML: 
+`<!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+    </head>
+    <body>
+        
+    </body>
+</html>`,
+    Java: 
+    `import java.util.*;
+
+    public class Main {
+        public static void main(String[] args) throws Exception {
+            // Your code here!
+            
+            System.out.println("java");
+        }
+    }`, 
+    JavaScript: `console.log('javascript);`, 
+    JSON: `'{ "name":"JSON", "age":30, "city":"New York"}'`, 
+    JSX: `//JSX`,
+    Kotlin: 
+    `fun main(args: Array<String>) {
+        // Your code here!
+        println("Kotlin")
+    }`,
+    PHP: `echo('PHP");`, 
+    PlainText: `Plain Text`, 
+    Python: 
+    `x = 'you are writing in python'
+    Print('python');`, 
+    Ruby: `# Ruby!`, 
+    Rust: `fn main(){println!("Rust");}`, 
+    Scala: 
+    `object Main extends App{
+        // Your code here!
+        println("Scala")
+    }`, 
+    SQL: `SELECT * FROM SQL;`, 
+    Swift: `print("Swift")`, 
+    TypeScript: 
+    `function greeter(person: string) {
+        return "Hello, " + person;
+    }
+    let user = "TypeScript";
+    document.body.textContent = greeter(user);`
+}
+
 
 themes.forEach(item => {
     const option = document.createElement("option");
@@ -1153,5 +1099,41 @@ modes.forEach(item => {
     mode.add(option);
 })
 
+editor.setTheme(theme.value);
+editor.session.setMode(mode.value);
+editor.session.setValue(modeExample[mode.options[mode.selectedIndex].text], 1);
+editor.setOptions({
+    highlightSelectedWord: true,
+    enableBasicAutocompletion: true,
+    enableLiveAutocompletion: true
+})
+editor.on('change', () => {//synchronous
+    if (!applyChanges) {
+        const code = editor.getValue();
+        const data = {
+            type: 'editor',
+            data: code
+        }
+        const num = connections.length;
+        for (let i = 0; i < num; i++) {
+            if (dataChannel[connections[i]].readyState === "open") {
+                dataChannel[connections[i]].send(JSON.stringify(data));
+            }
+        }
+    }
+})
 
+function receiveCode(code) {
+    applyChanges = true;
+    editor.setValue(code);
+    applyChanges = false;
+}
 
+function changeMode(value, text) {
+    editor.session.setMode(value);
+    editor.session.setValue(modeExample[text], 1);
+}
+
+function changeTheme(value) {
+    editor.setTheme(value);
+}

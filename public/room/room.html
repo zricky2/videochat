@@ -5,9 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LIVCODE</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="style.css">
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ext-language_tools.min.js"></script>
     <script defer src="client.js"></script>
 </head>
 
@@ -19,22 +21,24 @@
                     <!--small videos-->
                 </div>
                 <div class="bigbox">
-                    <div class="local videobox">
-                        <div class="username"></div>
-                        <video class="videosize videocall" id="localVideo" autoplay playsinline muted></video>
+                    <div id = "local" class="videobox">
+                        <div class="truesize">
+                            <div class="username"></div>
+                            <video class="videosize videocall" id="localVideo" autoplay playsinline muted></video>
+                        </div>
+                        
                     </div>
                 </div>
-                
             </div>
 
             <div id="bottombar">
-                <button id="openchat" class="bottombutton open">Chat</button>
-                <button id="openlivetext" class="bottombutton open">Live Code</button>
-                <button id="openeditor" class="bottombutton open">Editor</button> 
-                <button id="audio" class="bottombutton options">Mute</button>
-                <button id="video" class="bottombutton options">Stop Video</button>
-                <button id="share" class="bottombutton options">Share Screen</button>
-                <button id="leave" class="bottombutton">Leave</button>
+                <button id="openchat" class="bottombutton open"><i class="fa fa-send"></i><br>Chat</button>
+                <button id="openeditor" class="bottombutton open"><i class="fa fa-code"></i><br>Live Editor</button>
+                <!-- <button id="opendrawing" class="bottombutton open"><i class="fa fa-edit"></i><br>Draw</button> -->    
+                <button id="audio" class="bottombutton options"><i class="fa fa-microphone"></i><br>Mute</button>
+                <button id="video" class="bottombutton options"><i class="fa fa-video-camera"></i><br>Stop Video</button>
+                <button id="share" class="bottombutton options"><i class="fa fa-desktop"></i><br>Share Screen</button>
+                <button id="leave" class="bottombutton"><i class="fa fa-arrow-circle-o-right"></i><br>Leave</button>
             </div>
         </div>
 
@@ -81,18 +85,18 @@
 
             <div id="editbox" class="box">
                 <div class="title">Editor
-                    <button id = "closeeditor" class="close">&times</button>
-                    <button id = "settings">Settings</button>
+                    <button id="closeeditor" class="close">&times</button>
+                    <button id="settings"><i class="fa fa-gear"></i></button>
                 </div>
                 <div id="editor"></div>
                 <div class="modal">Setting<br>
                     <label for="mode">Language:</label>
-                    <select name="mode" id="mode">           
+                    <select name="mode" id="mode">
                     </select>
                     <label for="theme">Theme:</label>
                     <select name="theme" id="theme">
                     </select>
-                    <button id = "closesettings">&times</button>                   
+                    <button id="closesettings">&times</button>
                 </div>
             </div>
 
