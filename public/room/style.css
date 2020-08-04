@@ -285,27 +285,6 @@ video::-webkit-media-controls-fullscreen-button {
   overflow-y: scroll;
 }
 
-ul {
-  list-style-type: none;
-}
-
-ul li {
-  width: 50%;
-  border: 1px solid #ddd;
-  margin-top: -1px; /* Prevent double borders */
-  background-color: #f6f6f6;
-  text-decoration: none;
-  font-size: 12px;
-  color: black;
-  display: block;
-  position: relative;
-}
-
-/* Add a light grey background color on hover */
-ul li:hover {
-  background-color: #eee;
-}
-
 /* Dropdown Button */
 .dropbtn {
   background-color: #3498DB;
@@ -320,13 +299,30 @@ ul li:hover {
   background-color: #2980B9;
 }
 
+#filedropdown > div {
+  width: 100%;
+  border: 1px solid #ddd;
+  margin-top: -1px; /* Prevent double borders */
+  background-color: #f6f6f6;
+  text-decoration: none;
+  font-size: 12px;
+  color: black;
+  display: block;
+  position: relative;
+}
+
+/* Add a light grey background color on hover */
+#filedropdown > div:hover {
+  background-color: #eee;
+}
+
 /* Dropdown Content (Hidden by Default) */
 .dropdown-content {
   display: none;
   position: absolute;
   background-color: #f1f1f1;
   max-width: 50%;
-  max-height: 30%;
+  max-height: 60px;
   overflow-y: scroll;
   box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
   z-index: 1;

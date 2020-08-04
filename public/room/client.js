@@ -10,14 +10,11 @@ const messageInputBox = document.getElementById('message');
 const messagesBox = document.getElementsByClassName('messages')[0];
 const filePackage = document.getElementById("myFile");
 const uploadButton = document.getElementById("fileupload");
-const fileList = document.getElementById("fileList");
 const copyText = document.getElementById("copytext");
-const liveText = document.getElementById("livetextarea");//
 const chatAndFile = document.getElementsByClassName("chatandfile")[0];
-const liveTextBox = document.getElementById("livetextbox");//
 const main = document.getElementsByClassName('main')[0];
 const features = document.getElementsByClassName('features')[0];
-const filelist = document.getElementsByClassName('filelist')[0];
+const fileDrop = document.getElementById('filedropdown');
 const smallBox = document.getElementsByClassName('smallbox')[0];
 const bigBox = document.getElementsByClassName('bigbox')[0];
 const editorBox = document.getElementById('editbox');
@@ -138,10 +135,10 @@ filePackage.addEventListener('change', uploadEnable);
 
 uploadButton.addEventListener('click', sendFile);
 
-copyText.addEventListener('click', event => {
+/* copyText.addEventListener('click', event => {
     liveText.select();
     document.execCommand("copy");
-})
+}) */
 //The oninput attribute fires when the value of an <input> or <textarea> element is changed.
 //liveText.addEventListener("input", sendLiveText);
 
@@ -783,8 +780,8 @@ function receiveFile(event) {
 }
 
 function createFileItem(item) {
-    let file = document.createElement('li');
-    let link = document.createElement('a');
+    const file = document.createElement('div');
+    const link = document.createElement('a');
     link.setAttribute('href', item);
     link.download = recFileName;
     link.textContent = `'${recFileName}' (${recFileSize} bytes)`;
@@ -796,16 +793,15 @@ function createFileItem(item) {
     close.addEventListener('click', e => {
         file.remove();
     })
-    filelist.appendChild(file);
+    fileDrop.appendChild(file);
 }
 
 /* When the user clicks on the button,
 toggle between hiding and showing the dropdown content */
 const dropbtn = document.getElementsByClassName('dropbtn')[0];
 dropbtn.onclick = fileDropDown;
-const dropDown = document.getElementById("myDropdown");
 function fileDropDown() {
-    dropDown.classList.toggle("show");
+    fileDrop.classList.toggle("show");
 }
 
 // Close the dropdown menu if the user clicks outside of it
